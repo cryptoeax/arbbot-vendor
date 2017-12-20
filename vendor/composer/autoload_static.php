@@ -13,7 +13,9 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         ),
         'R' => 
         array (
+            'React\\Stream\\' => 13,
             'React\\EventLoop\\' => 16,
+            'React\\ChildProcess\\' => 19,
         ),
     );
 
@@ -22,9 +24,27 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         array (
             0 => __DIR__ . '/..' . '/textalk/websocket/lib',
         ),
+        'React\\Stream\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/stream/src',
+        ),
         'React\\EventLoop\\' => 
         array (
             0 => __DIR__ . '/..' . '/react/event-loop/src',
+        ),
+        'React\\ChildProcess\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/child-process/src',
+        ),
+    );
+
+    public static $prefixesPsr0 = array (
+        'E' => 
+        array (
+            'Evenement' => 
+            array (
+                0 => __DIR__ . '/..' . '/evenement/evenement/src',
+            ),
         ),
     );
 
@@ -33,6 +53,7 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4::$prefixesPsr0;
 
         }, null, ClassLoader::class);
     }
