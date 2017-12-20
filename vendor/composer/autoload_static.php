@@ -11,12 +11,20 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         array (
             'WebSocket\\' => 10,
         ),
+        'R' => 
+        array (
+            'React\\EventLoop\\' => 16,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
         'WebSocket\\' => 
         array (
             0 => __DIR__ . '/..' . '/textalk/websocket/lib',
+        ),
+        'React\\EventLoop\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/event-loop/src',
         ),
     );
 

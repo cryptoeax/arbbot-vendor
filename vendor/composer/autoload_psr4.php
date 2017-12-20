@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'WebSocket\\' => array($vendorDir . '/textalk/websocket/lib'),
+    'React\\EventLoop\\' => array($vendorDir . '/react/event-loop/src'),
 );
