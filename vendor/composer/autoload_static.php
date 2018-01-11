@@ -7,6 +7,10 @@ namespace Composer\Autoload;
 class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
 {
     public static $prefixLengthsPsr4 = array (
+        'c' => 
+        array (
+            'ccxt\\' => 5,
+        ),
         'W' => 
         array (
             'WebSocket\\' => 10,
@@ -20,6 +24,10 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
     );
 
     public static $prefixDirsPsr4 = array (
+        'ccxt\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/ccxt/ccxt/php',
+        ),
         'WebSocket\\' => 
         array (
             0 => __DIR__ . '/..' . '/textalk/websocket/lib',

@@ -6,6 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'ccxt\\' => array($vendorDir . '/ccxt/ccxt/php'),
     'WebSocket\\' => array($vendorDir . '/textalk/websocket/lib'),
     'React\\Stream\\' => array($vendorDir . '/react/stream/src'),
     'React\\EventLoop\\' => array($vendorDir . '/react/event-loop/src'),
