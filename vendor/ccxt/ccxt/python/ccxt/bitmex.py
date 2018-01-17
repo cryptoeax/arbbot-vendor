@@ -3,6 +3,7 @@
 from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import DDoSProtection
 
 
 class bitmex (Exchange):
@@ -178,7 +179,7 @@ class bitmex (Exchange):
             account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
-                'total': balance['amount'],
+                'total': balance['marginBalance'],
             }
             if currency == 'BTC':
                 account['free'] = account['free'] * 0.00000001
@@ -361,15 +362,16 @@ class bitmex (Exchange):
         }
 
     def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 429:
+            raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
             if body:
-                if body[0] == "{":
+                if body[0] == '{':
                     response = json.loads(body)
                     if 'error' in response:
                         if 'message' in response['error']:
+                            # stub code, need proper handling
                             raise ExchangeError(self.id + ' ' + self.json(response))
-                raise ExchangeError(self.id + ' ' + body)
-            raise ExchangeError(self.id + ' returned an empty response')
 
     def nonce(self):
         return self.milliseconds()

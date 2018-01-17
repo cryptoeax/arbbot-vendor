@@ -80,6 +80,17 @@ class coinmarketcap extends Exchange {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 
+    public function currency_code ($base, $name) {
+        $currencies = array (
+            'Bitgem' => 'Bitgem',
+            'NetCoin' => 'NetCoin',
+            'BatCoin' => 'BatCoin',
+        );
+        if (is_array ($currencies) && array_key_exists ($name, $currencies))
+            return $currencies[$name];
+        return $base;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetTicker (array (
             'limit' => 0,
@@ -91,8 +102,8 @@ class coinmarketcap extends Exchange {
             for ($i = 0; $i < count ($currencies); $i++) {
                 $quote = $currencies[$i];
                 $quoteId = strtolower ($quote);
-                $base = $market['symbol'];
                 $baseId = $market['id'];
+                $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quote;
                 $result[] = array (
@@ -199,22 +210,23 @@ class coinmarketcap extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $currencies = $this->publicGetTicker (array_merge (array (
-            'limit' => 0
+            'limit' => 0,
         ), $params));
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['symbol'];
+            $name = $currency['name'];
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->common_currency_code($id);
+            $code = $this->currency_code ($id, $name);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
-                'name' => $currency['name'],
+                'name' => $name,
                 'active' => true,
                 'status' => 'ok',
                 'fee' => null, // todo => redesign

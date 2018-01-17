@@ -25,7 +25,7 @@ class kucoin (Exchange):
             # obsolete metainfo interface
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
-            'hasFetchOrder': True,
+            'hasFetchOrder': False,
             'hasFetchOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
@@ -36,7 +36,7 @@ class kucoin (Exchange):
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
-                'fetchOrder': True,
+                'fetchOrder': False,
                 'fetchOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
@@ -293,11 +293,26 @@ class kucoin (Exchange):
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = order['createdAt']
-        price = order['price']
-        filled = order['dealAmount']
-        remaining = order['pendingAmount']
-        amount = self.sum(filled, remaining)
+        price = self.safe_value(order, 'price')
+        if price is None:
+            price = self.safe_value(order, 'dealPrice')
+        amount = self.safe_value(order, 'amount')
+        filled = self.safe_value(order, 'dealAmount', 0)
+        remaining = self.safe_value(order, 'pendingAmount')
+        if amount is None:
+            if filled is not None:
+                if remaining is not None:
+                    amount = self.sum(filled, remaining)
         side = order['direction'].lower()
+        fee = None
+        if 'fee' in order:
+            fee = {
+                'cost': self.safe_float(order, 'fee'),
+                'rate': self.safe_float(order, 'feeRate'),
+            }
+            if market:
+                fee['currency'] = market['base']
+        status = self.safe_value(order, 'status')
         result = {
             'info': order,
             'id': self.safe_string(order, 'oid'),
@@ -311,8 +326,8 @@ class kucoin (Exchange):
             'cost': price * filled,
             'filled': filled,
             'remaining': remaining,
-            'status': None,
-            'fee': self.safe_float(order, 'fee'),
+            'status': status,
+            'fee': fee,
         }
         return result
 
@@ -326,7 +341,10 @@ class kucoin (Exchange):
         }
         response = self.privateGetOrderActiveMap(self.extend(request, params))
         orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
-        return self.parse_orders(orders, market, since, limit)
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.extend(orders[i], {'status': 'open'}))
+        return self.parse_orders(result, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {}
@@ -340,7 +358,11 @@ class kucoin (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privateGetOrderDealt(self.extend(request, params))
-        return self.parse_orders(response['data']['datas'], market, since, limit)
+        orders = response['data']['datas']
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.extend(orders[i], {'status': 'closed'}))
+        return self.parse_orders(result, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -537,7 +559,7 @@ class kucoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def throw_exception_or_error_code(self, response):
+    def throw_exception_on_error(self, response):
         if 'success' in response:
             if not response['success']:
                 if 'code' in response:
@@ -549,16 +571,15 @@ class kucoin (Exchange):
                     elif response['code'] == 'ERROR':
                         if message.find('precision of amount') >= 0:
                             raise InvalidOrder(self.id + ' ' + message)
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                        if message.find('Min amount each order') >= 0:
+                            raise InvalidOrder(self.id + ' ' + message)
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if body and(body[0] == "{"):
+        if body and(body[0] == '{'):
             response = json.loads(body)
-            self.throw_exception_or_error_code(response)
-        if code >= 400:
-            raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
+            self.throw_exception_on_error(response)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        self.throw_exception_or_error_code(response)
+        self.throw_exception_on_error(response)
         return response

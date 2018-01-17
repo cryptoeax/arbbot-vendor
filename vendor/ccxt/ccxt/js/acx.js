@@ -1,10 +1,9 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, OrderNotFound } = require ('./base/errors')
-
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -194,7 +193,7 @@ module.exports = class acx extends Exchange {
                 quote = quote.toUpperCase ();
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
-                let symbol = base + '/' + quote;
+                symbol = base + '/' + quote;
             }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
@@ -274,11 +273,11 @@ module.exports = class acx extends Exchange {
         let timestamp = this.parse8601 (order['created_at']);
         let state = order['state'];
         let status = undefined;
-        if (state == 'done') {
+        if (state === 'done') {
             status = 'closed';
-        } else if (state == 'wait') {
+        } else if (state === 'wait') {
             status = 'open';
-        } else if (state == 'cancel') {
+        } else if (state === 'cancel') {
             status = 'canceled';
         }
         return {
@@ -307,7 +306,7 @@ module.exports = class acx extends Exchange {
             'volume': amount.toString (),
             'ord_type': type,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             order['price'] = price.toString ();
         }
         let response = await this.privatePostOrders (this.extend (order, params));
@@ -318,8 +317,8 @@ module.exports = class acx extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let result = await this.privatePostOrderDelete ({ 'id': id });
-        let order = this.parseOrder(result);
-        if (order['status'] == 'closed') {
+        let order = this.parseOrder (result);
+        if (order['status'] === 'closed') {
             throw new OrderNotFound (this.id + ' ' + result);
         }
         return order;
@@ -366,7 +365,7 @@ module.exports = class acx extends Exchange {
             request += this.urls['extension'];
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -380,7 +379,7 @@ module.exports = class acx extends Exchange {
             let auth = method + '|' + request + '|' + query;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));
             let suffix = query + '&signature=' + signature;
-            if (method == 'GET') {
+            if (method === 'GET') {
                 url += '?' + suffix;
             } else {
                 body = suffix;

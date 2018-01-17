@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.637'
+__version__ = '1.10.757'
 
 # -----------------------------------------------------------------------------
 
@@ -96,6 +96,7 @@ class Exchange(object):
     tickers = None
     api = None
     parseJsonResponse = True
+    exceptions = {}
     headers = {}
     balance = {}
     orderbooks = {}
@@ -374,8 +375,10 @@ class Exchange(object):
         error = None
         if http_status_code in [418, 429]:
             error = DDoSProtection
-        elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
+        elif http_status_code in [404, 409, 500, 501, 502, 520, 521, 522, 525]:
             error = ExchangeNotAvailable
+        elif http_status_code in [422]:
+            error = ExchangeError
         elif http_status_code in [400, 403, 405, 503, 530]:
             # special case to detect ddos protection
             error = ExchangeNotAvailable
@@ -436,7 +439,7 @@ class Exchange(object):
         if precision > 0:
             decimal_precision = math.pow(10, precision)
             return math.trunc(num * decimal_precision) / decimal_precision
-        return num
+        return int(Exchange.truncate_to_string(num, precision))
 
     @staticmethod
     def truncate_to_string(num, precision=0):
@@ -835,8 +838,11 @@ class Exchange(object):
     def fetch_markets(self):
         return self.markets
 
+    def fetch_bids_asks(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
+
     def fetch_tickers(self, symbols=None, params={}):
-        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
     def fetch_order_status(self, id, market=None):
         order = self.fetch_order(id)

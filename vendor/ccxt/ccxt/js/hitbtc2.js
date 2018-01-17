@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const hitbtc = require ('./hitbtc')
-const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors')
+const hitbtc = require ('./hitbtc');
+const { ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'HK', // Hong Kong
+            'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
             'hasCORS': true,
@@ -317,8 +317,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0.0003,
-                        'ETH': 0,
+                        'BTC': 0.0006,
+                        'ETH': 0.003,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -517,14 +517,14 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     commonCurrencyCode (currency) {
-        if (currency == 'XBT')
-            return 'BTC';
-        if (currency == 'DRK')
-            return 'DASH';
-        if (currency == 'CAT')
-            return 'BitClave';
-        if (currency == 'USD')
-            return 'USDT';
+        let currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+        };
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
@@ -816,7 +816,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'quantity': this.amountToPrecision (symbol, amount),
             'type': type,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         } else {
             request['timeInForce'] = 'FOK';
@@ -848,13 +848,13 @@ module.exports = class hitbtc2 extends hitbtc {
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'cumQuantity');
         let status = order['status'];
-        if (status == 'new') {
+        if (status === 'new') {
             status = 'open';
-        } else if (status == 'suspended') {
+        } else if (status === 'suspended') {
             status = 'open';
-        } else if (status == 'partiallyFilled') {
+        } else if (status === 'partiallyFilled') {
             status = 'open';
-        } else if (status == 'filled') {
+        } else if (status === 'filled') {
             status = 'closed';
         }
         let id = order['clientOrderId'].toString ();
@@ -1022,14 +1022,14 @@ module.exports = class hitbtc2 extends hitbtc {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api' + '/' + this.version + '/';
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             url += api + '/' + this.implodeParams (path, params);
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             url += this.implodeParams (path, params);
-            if (method == 'GET') {
+            if (method === 'GET') {
                 if (Object.keys (query).length)
                     url += '?' + this.urlencode (query);
             } else {
@@ -1039,7 +1039,7 @@ module.exports = class hitbtc2 extends hitbtc {
             let payload = this.encode (this.apiKey + ':' + this.secret);
             let auth = this.stringToBase64 (payload);
             headers = {
-                'Authorization': "Basic " + this.decode (auth),
+                'Authorization': 'Basic ' + this.decode (auth),
                 'Content-Type': 'application/json',
             };
         }
@@ -1048,16 +1048,18 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code == 400) {
-            if (body[0] == "{") {
+        if (code === 400) {
+            if (body[0] === '{') {
                 let response = JSON.parse (body);
                 if ('error' in response) {
                     if ('message' in response['error']) {
                         let message = response['error']['message'];
-                        if (message == 'Order not found') {
+                        if (message === 'Order not found') {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
-                        } else if (message == 'Insufficient funds') {
-                            throw new InsufficientFunds (this.id + ' ' + message);
+                        } else if (message === 'Insufficient funds') {
+                            throw new InsufficientFunds (this.id + ' ' + body);
+                        } else if (message === 'Duplicate clientOrderId') {
+                            throw new InvalidOrder (this.id + ' ' + body);
                         }
                     }
                 }

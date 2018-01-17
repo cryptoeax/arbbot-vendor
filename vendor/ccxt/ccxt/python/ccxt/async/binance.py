@@ -20,6 +20,7 @@ class binance (Exchange):
             'rateLimit': 500,
             'hasCORS': False,
             # obsolete metainfo interface
+            'hasFetchBidsAsks': True,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
@@ -29,6 +30,7 @@ class binance (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchBidsAsks': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
@@ -62,6 +64,7 @@ class binance (Exchange):
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
+                    'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
@@ -118,15 +121,15 @@ class binance (Exchange):
                     'post': [
                         'order',
                         'order/test',
-                        'userDataStream',
-                    ],
-                    'put': [
-                        'userDataStream'
                     ],
                     'delete': [
                         'order',
-                        'userDataStream',
                     ],
+                },
+                'v1': {
+                    'put': ['userDataStream'],
+                    'post': ['userDataStream'],
+                    'delete': ['userDataStream'],
                 },
             },
             'fees': {
@@ -305,6 +308,8 @@ class binance (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
+            if id == '123456':
+                continue
             baseId = market['baseAsset']
             quoteId = market['quoteAsset']
             base = self.common_currency_code(baseId)
@@ -425,7 +430,9 @@ class binance (Exchange):
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
+            'bidVolume': self.safe_float(ticker, 'bidQty'),
             'ask': self.safe_float(ticker, 'askPrice'),
+            'askVolume': self.safe_float(ticker, 'askQty'),
             'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
             'open': self.safe_float(ticker, 'openPrice'),
             'close': self.safe_float(ticker, 'prevClosePrice'),
@@ -447,9 +454,7 @@ class binance (Exchange):
         }, params))
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
-        await self.load_markets()
-        rawTickers = await self.publicGetTickerBookTicker(params)
+    def parse_tickers(self, rawTickers, symbols=None):
         tickers = []
         for i in range(0, len(rawTickers)):
             tickers.append(self.parse_ticker(rawTickers[i]))
@@ -464,6 +469,16 @@ class binance (Exchange):
             if symbol in tickersBySymbol:
                 result[symbol] = tickersBySymbol[symbol]
         return result
+
+    async def fetch_bid_asks(self, symbols=None, params={}):
+        await self.load_markets()
+        rawTickers = await self.publicGetTickerBookTicker(params)
+        return self.parse_tickers(rawTickers, symbols)
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        rawTickers = await self.publicGetTicker24hr(params)
+        return self.parse_tickers(rawTickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -713,6 +728,7 @@ class binance (Exchange):
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
+            'name': address,
         }, params))
         return {
             'info': response,
@@ -724,7 +740,14 @@ class binance (Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        if (api == 'private') or (api == 'wapi'):
+        # v1 special case for userDataStream
+        if path == 'userDataStream':
+            body = self.urlencode(params)
+            headers = {
+                'X-MBX-APIKEY': self.apiKey,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        elif (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
             nonce = self.milliseconds()
             query = self.urlencode(self.extend({
@@ -750,15 +773,17 @@ class binance (Exchange):
         if code >= 400:
             if code == 418:
                 raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+            if body.find('Price * QTY is zero or less') >= 0:
+                raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
             if body.find('MIN_NOTIONAL') >= 0:
-                raise InvalidOrder(self.id + ' order cost = amount * price should be >(0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' + body)
+                raise InvalidOrder(self.id + ' order cost = amount * price is too small ' + body)
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
             if body.find('Order does not exist') >= 0:
                 raise OrderNotFound(self.id + ' ' + body)
-        if body[0] == "{":
+        if body[0] == '{':
             response = json.loads(body)
             error = self.safe_value(response, 'code')
             if error is not None:
@@ -768,5 +793,3 @@ class binance (Exchange):
                     raise OrderNotFound(self.id + ' ' + self.json(response))
                 elif error == -1013:  # Invalid quantity
                     raise InvalidOrder(self.id + ' ' + self.json(response))
-                elif error < 0:
-                    raise ExchangeError(self.id + ' ' + self.json(response))

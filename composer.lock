@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.10.637",
+            "version": "1.10.757",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "b17117908d68c48491079003454a5d1d483bc7e4"
+                "reference": "fc3006aaf804c52c38fddfd5b61067aba33f3f19"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/b17117908d68c48491079003454a5d1d483bc7e4",
-                "reference": "b17117908d68c48491079003454a5d1d483bc7e4",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/fc3006aaf804c52c38fddfd5b61067aba33f3f19",
+                "reference": "fc3006aaf804c52c38fddfd5b61067aba33f3f19",
                 "shasum": ""
             },
             "require": {
@@ -254,7 +254,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2018-01-11T02:39:36+00:00"
+            "time": "2018-01-17T22:04:48+00:00"
         },
         {
             "name": "evenement/evenement",

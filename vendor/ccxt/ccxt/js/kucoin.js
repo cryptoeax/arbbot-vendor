@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ module.exports = class kucoin extends Exchange {
             // obsolete metainfo interface
             'hasFetchTickers': true,
             'hasFetchOHLCV': true,
-            'hasFetchOrder': true,
+            'hasFetchOrder': false,
             'hasFetchOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchOpenOrders': true,
@@ -32,7 +32,7 @@ module.exports = class kucoin extends Exchange {
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true, // see the method implementation below
-                'fetchOrder': true,
+                'fetchOrder': false,
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
@@ -298,11 +298,27 @@ module.exports = class kucoin extends Exchange {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
         }
         let timestamp = order['createdAt'];
-        let price = order['price'];
-        let filled = order['dealAmount'];
-        let remaining = order['pendingAmount'];
-        let amount = this.sum (filled, remaining);
+        let price = this.safeValue (order, 'price');
+        if (typeof price === 'undefined')
+            price = this.safeValue (order, 'dealPrice');
+        let amount = this.safeValue (order, 'amount');
+        let filled = this.safeValue (order, 'dealAmount', 0);
+        let remaining = this.safeValue (order, 'pendingAmount');
+        if (typeof amount === 'undefined')
+            if (typeof filled !== 'undefined')
+                if (typeof remaining !== 'undefined')
+                    amount = this.sum (filled, remaining);
         let side = order['direction'].toLowerCase ();
+        let fee = undefined;
+        if ('fee' in order) {
+            fee = {
+                'cost': this.safeFloat (order, 'fee'),
+                'rate': this.safeFloat (order, 'feeRate'),
+            };
+            if (market)
+                fee['currency'] = market['base'];
+        }
+        let status = this.safeValue (order, 'status');
         let result = {
             'info': order,
             'id': this.safeString (order, 'oid'),
@@ -316,8 +332,8 @@ module.exports = class kucoin extends Exchange {
             'cost': price * filled,
             'filled': filled,
             'remaining': remaining,
-            'status': undefined,
-            'fee': this.safeFloat (order, 'fee'),
+            'status': status,
+            'fee': fee,
         };
         return result;
     }
@@ -332,7 +348,11 @@ module.exports = class kucoin extends Exchange {
         };
         let response = await this.privateGetOrderActiveMap (this.extend (request, params));
         let orders = this.arrayConcat (response['data']['SELL'], response['data']['BUY']);
-        return this.parseOrders (orders, market, since, limit);
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            result.push (this.extend (orders[i], { 'status': 'open' }));
+        }
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -350,7 +370,12 @@ module.exports = class kucoin extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.privateGetOrderDealt (this.extend (request, params));
-        return this.parseOrders (response['data']['datas'], market, since, limit);
+        let orders = response['data']['datas'];
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            result.push (this.extend (orders[i], { 'status': 'closed' }));
+        }
+        return this.parseOrders (result, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -445,9 +470,9 @@ module.exports = class kucoin extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = trade[0];
         let side = undefined;
-        if (trade[1] == 'BUY') {
+        if (trade[1] === 'BUY') {
             side = 'buy';
-        } else if (trade[1] == 'SELL') {
+        } else if (trade[1] === 'SELL') {
             side = 'sell';
         }
         return {
@@ -540,7 +565,7 @@ module.exports = class kucoin extends Exchange {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + endpoint;
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -552,7 +577,7 @@ module.exports = class kucoin extends Exchange {
             if (Object.keys (query).length) {
                 queryString = this.rawencode (this.keysort (query));
                 url += '?' + queryString;
-                if (method != 'GET') {
+                if (method !== 'GET') {
                     body = queryString;
                 }
             }
@@ -569,38 +594,36 @@ module.exports = class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    throwExceptionOrErrorCode (response) {
+    throwExceptionOnError (response) {
         if ('success' in response) {
             if (!response['success']) {
                 if ('code' in response) {
                     let message = this.safeString (response, 'msg');
-                    if (response['code'] == 'UNAUTH') {
-                        if (message == 'Invalid nonce')
+                    if (response['code'] === 'UNAUTH') {
+                        if (message === 'Invalid nonce')
                             throw new InvalidNonce (this.id + ' ' + message);
                         throw new AuthenticationError (this.id + ' ' + this.json (response));
-                    } else if (response['code'] == 'ERROR') {
+                    } else if (response['code'] === 'ERROR') {
                         if (message.indexOf ('precision of amount') >= 0)
+                            throw new InvalidOrder (this.id + ' ' + message);
+                        if (message.indexOf ('Min amount each order') >= 0)
                             throw new InvalidOrder (this.id + ' ' + message);
                     }
                 }
-                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body && (body[0] == "{")) {
+        if (body && (body[0] === '{')) {
             let response = JSON.parse (body);
-            this.throwExceptionOrErrorCode (response);
-        }
-        if (code >= 400) {
-            throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
+            this.throwExceptionOnError (response);
         }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        this.throwExceptionOrErrorCode (response);
+        this.throwExceptionOnError (response);
         return response;
     }
 }

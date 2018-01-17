@@ -6,7 +6,7 @@
 
 ## How To Submit An Issue
 
-If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
+If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
 
 - Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki/Manual), and especially carefully read the following sections:
   - [Exchange Properties](https://github.com/ccxt-dev/ccxt/wiki/Manual#exchange-properties)
@@ -17,12 +17,16 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 - Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
 - Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
-- If your issue is unique, along with a basic description of the failure, please, provide the following information:
-  - your language version, ccxt library version
-  - which exchange it is and which method you're trying to call
-  - a full code snippet you're having difficulties with (avoid one-liners)
-  - set `.verbose = true` property on the exchange instance before calling its methods
+- If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
+  - **set `.verbose = true` property on the exchange instance before calling its methods**
+  - **surround code and output with triple backticks: &#096;&#096;&#096;YOUR\_CODE&#096;&#096;&#096;**
+  - paste a complete code snippet you're having difficulties with, avoid one-liners
   - paste the full stacktrace of that snippet in verbose mode as is, unchanged
+  - don't confuse the backtick symbol (&#096;) with the quote symbol (\'), &#096;&#096;&#096;GOOD&#096;&#096;&#096;, '''BAD'''
+  - write your language **and version**
+  - write ccxt library version
+  - which exchange it is
+  - which method you're trying to call
 
 ## How To Contribute Code
 
@@ -176,7 +180,13 @@ These PHP base classes and files are not transpiled:
 
 #### Derived Exchange Classes
 
+Transpiler is regex-based and heavily relies on specific formatting rules. If you break them then the transpiler will either
+fail to generate Python/PHP classes at all or generate malformed Python/PHP syntax.
+
 Below are key notes on how to keep the JS code transpileable.
+
+Use the linter `npm run lint js/your-exchange-implementation.js` before you build. It will cover many (but not all) the issues,
+so manual checking will still be required if transpilation fails.
 
 If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisifes the following rules:
 
@@ -205,6 +215,8 @@ And structurally:
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
+- avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
+- keep it simple, don't do more than one statement in one line
 
 **If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
 
