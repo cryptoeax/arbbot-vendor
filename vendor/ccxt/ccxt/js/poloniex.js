@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ module.exports = class poloniex extends Exchange {
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 1000, // up to 6 calls per second
-            'hasCORS': true,
+            'hasCORS': false,
             // obsolete metainfo interface
             'hasFetchMyTrades': true,
             'hasFetchOrder': true,
@@ -28,6 +28,8 @@ module.exports = class poloniex extends Exchange {
             'hasFetchOHLCV': true,
             // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
@@ -742,14 +744,17 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currencyId = this.currencyId (currency);
-        let result = await this.privatePostWithdraw (this.extend ({
+        let request = {
             'currency': currencyId,
             'amount': amount,
             'address': address,
-        }, params));
+        };
+        if (tag)
+            request['paymentId'] = tag;
+        let result = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': result,
             'id': result['response'],

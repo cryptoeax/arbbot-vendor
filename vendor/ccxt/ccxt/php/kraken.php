@@ -23,6 +23,8 @@ class kraken extends Exchange {
             'hasFetchCurrencies' => true,
             // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
@@ -737,7 +739,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         if (is_array ($params) && array_key_exists ('key', $params)) {
             $this->load_markets();
             $response = $this->privatePostWithdraw (array_merge (array (

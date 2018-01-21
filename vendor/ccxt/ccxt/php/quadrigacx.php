@@ -16,6 +16,7 @@ class quadrigacx extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'withdraw' => true,
             ),
             'urls' => array (
@@ -59,8 +60,11 @@ class quadrigacx extends Exchange {
                 'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002, 'taker' => 0.002 ),
                 'ETH/CAD' => array ( 'id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'LTC/CAD' => array ( 'id' => 'ltc_cad', 'symbol' => 'LTC/CAD', 'base' => 'LTC', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BCH/CAD' => array ( 'id' => 'bch_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BCH/BTC' => array ( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTG/BTC' => array ( 'id' => 'btg_btc', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
             ),
         ));
     }
@@ -150,7 +154,7 @@ class quadrigacx extends Exchange {
             'amount' => $amount,
             'book' => $this->market_id($symbol),
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         $response = $this->$method (array_merge ($order, $params));
         return array (
@@ -186,13 +190,13 @@ class quadrigacx extends Exchange {
     }
 
     public function get_currency_name ($currency) {
-        if ($currency == 'ETH')
+        if ($currency === 'ETH')
             return 'Ether';
-        if ($currency == 'BTC')
+        if ($currency === 'BTC')
             return 'Bitcoin';
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'amount' => $amount,
@@ -208,7 +212,7 @@ class quadrigacx extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();

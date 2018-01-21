@@ -35,6 +35,8 @@ class kraken (Exchange):
             'hasFetchCurrencies': True,
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -703,7 +705,7 @@ class kraken (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         if 'key' in params:
             await self.load_markets()
             response = await self.privatePostWithdraw(self.extend({

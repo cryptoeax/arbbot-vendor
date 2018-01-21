@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@ module.exports = class quadrigacx extends Exchange {
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
                 'withdraw': true,
             },
             'urls': {
@@ -64,8 +65,11 @@ module.exports = class quadrigacx extends Exchange {
                 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002, 'taker': 0.002 },
                 'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
                 'LTC/CAD': { 'id': 'ltc_cad', 'symbol': 'LTC/CAD', 'base': 'LTC', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005 },
                 'BCH/CAD': { 'id': 'bch_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
+                'BCH/BTC': { 'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005 },
                 'BTG/CAD': { 'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
+                'BTG/BTC': { 'id': 'btg_btc', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005 },
             },
         });
     }
@@ -155,7 +159,7 @@ module.exports = class quadrigacx extends Exchange {
             'amount': amount,
             'book': this.marketId (symbol),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let response = await this[method] (this.extend (order, params));
         return {
@@ -191,13 +195,13 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     getCurrencyName (currency) {
-        if (currency == 'ETH')
+        if (currency === 'ETH')
             return 'Ether';
-        if (currency == 'BTC')
+        if (currency === 'BTC')
             return 'Bitcoin';
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'amount': amount,
@@ -213,7 +217,7 @@ module.exports = class quadrigacx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();

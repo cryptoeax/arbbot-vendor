@@ -88,7 +88,12 @@ class liqui (Exchange):
                     'maker': 0.001,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': None,
+                    'deposit': None,
+                },
             },
             'exceptions': {
                 '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
@@ -544,7 +549,7 @@ class liqui (Exchange):
             trades = response['return']
         return self.parse_trades(trades, market, since, limit)
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         response = await self.privatePostWithdrawCoin(self.extend({
             'coinName': currency,
@@ -585,7 +590,9 @@ class liqui (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if (not isinstance(body, basestring)) or len((body) < 2):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
             response = json.loads(body)
@@ -623,8 +630,8 @@ class liqui (Exchange):
                     else:
                         success = False
                 if not success:
-                    code = response['code']
-                    message = response['error']
+                    code = self.safe_string(response, 'code')
+                    message = self.safe_string(response, 'error')
                     feedback = self.id + ' ' + self.json(response)
                     exceptions = self.exceptions
                     if code in exceptions:

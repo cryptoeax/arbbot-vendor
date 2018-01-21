@@ -75,6 +75,7 @@ class okcoinusd (Exchange):
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ],
                 },
@@ -157,7 +158,9 @@ class okcoinusd (Exchange):
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
             uppercase = id.upper()
-            base, quote = uppercase.split('_')
+            baseId, quoteId = uppercase.split('_')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': markets[i]['maxSizeDigit'],
@@ -171,6 +174,8 @@ class okcoinusd (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': True,
@@ -228,6 +233,11 @@ class okcoinusd (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
         symbol = None
+        if not market:
+            if 'symbol' in ticker:
+                marketId = ticker['symbol']
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
         return {
@@ -536,7 +546,7 @@ class okcoinusd (Exchange):
         }, params))
         return self.filter_by(orders, 'status', 'closed')
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         lowercase = currency.lower() + '_usd'
         # if amount < 0.01:
@@ -553,17 +563,16 @@ class okcoinusd (Exchange):
             query = self.omit(query, 'chargefee')
         else:
             raise ExchangeError(self.id + ' withdraw() requires a `chargefee` parameter')
-        password = None
         if self.password:
             request['trade_pwd'] = self.password
-            password = self.password
         elif 'password' in query:
             request['trade_pwd'] = query['password']
             query = self.omit(query, 'password')
         elif 'trade_pwd' in query:
             request['trade_pwd'] = query['trade_pwd']
             query = self.omit(query, 'trade_pwd')
-        if not password:
+        passwordInRequest = ('trade_pwd' in list(request.keys()))
+        if not passwordInRequest:
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = await self.privatePostWithdraw(self.extend(request, query))
         return {

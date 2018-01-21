@@ -45,12 +45,12 @@ class kucoin (Exchange):
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1',
-                '5m': '5',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '8h': '480',
+                '1m': 1,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '8h': 480,
                 '1d': 'D',
                 '1w': 'W',
             },
@@ -312,10 +312,13 @@ class kucoin (Exchange):
             }
             if market:
                 fee['currency'] = market['base']
+        orderId = self.safe_string(order, 'orderOid')
+        if orderId is None:
+            orderId = self.safe_string(order, 'oid')
         status = self.safe_value(order, 'status')
         result = {
             'info': order,
-            'id': self.safe_string(order, 'oid'),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -517,7 +520,7 @@ class kucoin (Exchange):
         response = await self.publicGetOpenChartHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostAccountCoinWithdrawApply(self.extend({

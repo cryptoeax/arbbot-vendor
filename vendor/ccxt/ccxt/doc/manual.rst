@@ -433,7 +433,9 @@ Some exchanges are `DDoS <https://en.wikipedia.org/wiki/Denial-of-service_attack
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
--  try later
+-  try using a cloudscraper:
+-  https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
+-  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
 -  use a proxy (this is less responsive, though)
 -  ask the exchange support to add you to a whitelist
 -  run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
@@ -1672,14 +1674,29 @@ Funding Your Account
 Deposit
 ~~~~~~~
 
-``UNDER CONSTRUCTION``
+::
+
+    fetchDepositAddress (code, params={})
+    createDepositAddress (code, params={})
+
+-  code is the currency code
+-  params contains optional extra overrides
+
+::
+
+    {
+        'currency': currency, // currency code
+        'address': address,   // address in terms of requested currency
+        'status': status,     // 'ok' or other
+        'info': response,     // raw unparsed data as returned from the exchange
+    }
 
 Withdraw
 ~~~~~~~~
 
 ::
 
-    exchange.withdraw (currency, amount, address, params = {})
+    exchange.withdraw (currency, amount, address, tag = undefined, params = {})
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
 
@@ -1689,6 +1706,8 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
         'info' { ... },      // unparsed reply from the exchange, as is
         'id': '12345567890', // string withdrawal id, if any
     }
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction.
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
@@ -1882,16 +1901,19 @@ Troubleshooting
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
-1.  Check the `CHANGELOG <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ for recent updates.
-2.  Turn ``verbose = true`` to get more detail about it.
-3.  Check you API credentials. Try a fresh new keypair if possible.
-4.  Check your nonce. If you used your API keys with other software, you most likely should `override your nonce function <#overriding-the-nonce>`__ to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair.
-5.  Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__, also `here <https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth>`__.
-6.  Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.
-7.  Check your connectivity with the exchange by accessing it with your browser.
-8.  Check your connection with the exchange through a proxy. Read the `Proxy <https://github.com/ccxt/ccxt/wiki/Install#proxy>`__ section for more details.
-9.  Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
-10. Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
+-  Check the `CHANGELOG <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ for recent updates.
+-  Turn ``verbose = true`` to get more detail about it.
+-  Check you API credentials. Try a fresh new keypair if possible.
+-  If it is a Cloudflare protection error, try these examples:
+-  https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
+-  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
+-  Check your nonce. If you used your API keys with other software, you most likely should `override your nonce function <#overriding-the-nonce>`__ to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair.
+-  Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__, also `here <https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth>`__.
+-  Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.
+-  Check your connectivity with the exchange by accessing it with your browser.
+-  Check your connection with the exchange through a proxy. Read the `Proxy <https://github.com/ccxt/ccxt/wiki/Install#proxy>`__ section for more details.
+-  Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
+-  Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
 
 Notes
 -----

@@ -44,6 +44,7 @@ class bittrex (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
@@ -586,13 +587,16 @@ class bittrex (Exchange):
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         currencyId = self.currency_id(currency)
-        response = self.accountGetWithdraw(self.extend({
+        request = {
             'currency': currencyId,
             'quantity': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentid'] = tag
+        response = self.accountGetWithdraw(self.extend(request, params))
         id = None
         if 'result' in response:
             if 'uuid' in response['result']:

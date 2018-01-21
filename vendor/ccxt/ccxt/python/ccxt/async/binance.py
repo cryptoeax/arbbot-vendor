@@ -30,6 +30,7 @@ class binance (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchBidsAsks': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -715,21 +716,26 @@ class binance (Exchange):
         if 'success' in response:
             if response['success']:
                 address = self.safe_string(response, 'address')
+                tag = self.safe_string(response, 'addressTag')
                 return {
                     'currency': currency,
                     'address': address,
+                    'tag': tag,
                     'status': 'ok',
                     'info': response,
                 }
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
-    async def withdraw(self, currency, amount, address, params={}):
-        response = await self.wapiPostWithdraw(self.extend({
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
+        request = {
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
             'name': address,
-        }, params))
+        }
+        if tag:
+            request['addressTag'] = tag
+        response = await self.wapiPostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': self.safe_string(response, 'id'),

@@ -70,7 +70,12 @@ class liqui extends Exchange {
                     'maker' => 0.001,
                     'taker' => 0.0025,
                 ),
-                'funding' => 0.0,
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => null,
+                    'deposit' => null,
+                ),
             ),
             'exceptions' => array (
                 '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
@@ -571,7 +576,7 @@ class liqui extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostWithdrawCoin (array_merge (array (
             'coinName' => $currency,
@@ -617,7 +622,9 @@ class liqui extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if ((gettype ($body) != 'string') || (strlen ($body) < 2))
+        if (gettype ($body) != 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
             $response = json_decode ($body, $as_associative_array = true);
@@ -656,8 +663,8 @@ class liqui extends Exchange {
                         $success = false;
                 }
                 if (!$success) {
-                    $code = $response['code'];
-                    $message = $response['error'];
+                    $code = $this->safe_string($response, 'code');
+                    $message = $this->safe_string($response, 'error');
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {

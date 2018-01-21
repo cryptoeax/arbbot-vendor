@@ -32,6 +32,8 @@ class hitbtc2 (hitbtc):
             'hasFetchCurrencies': True,
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
@@ -125,7 +127,7 @@ class hitbtc2 (hitbtc):
                     'withdraw': {
                         'BTC': 0.00085,
                         'BCC': 0.0018,
-                        'ETH': 0.00215,
+                        'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,
@@ -946,9 +948,11 @@ class hitbtc2 (hitbtc):
             'currency': currency['id'],
         })
         address = response['address']
+        tag = self.safe_string(response, 'paymentId')
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }
@@ -960,20 +964,25 @@ class hitbtc2 (hitbtc):
             'currency': currency['id'],
         })
         address = response['address']
+        tag = self.safe_string(response, 'paymentId')
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }
 
-    def withdraw(self, code, amount, address, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         currency = self.currency(code)
-        response = self.privatePostAccountCryptoWithdraw(self.extend({
+        request = {
             'currency': currency['id'],
             'amount': float(amount),
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        response = self.privatePostAccountCryptoWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],

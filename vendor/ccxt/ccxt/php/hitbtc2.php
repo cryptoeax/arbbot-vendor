@@ -24,6 +24,8 @@ class hitbtc2 extends hitbtc {
             'hasFetchCurrencies' => true,
             // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
                 'fetchCurrencies' => true,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
@@ -117,7 +119,7 @@ class hitbtc2 extends hitbtc {
                     'withdraw' => array (
                         'BTC' => 0.00085,
                         'BCC' => 0.0018,
-                        'ETH' => 0.00215,
+                        'ETH' => 0.00958,
                         'BCH' => 0.0018,
                         'USDT' => 100,
                         'DASH' => 0.03,
@@ -978,9 +980,11 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['id'],
         ));
         $address = $response['address'];
+        $tag = $this->safe_string($response, 'paymentId');
         return array (
             'currency' => $currency,
             'address' => $address,
+            'tag' => $tag,
             'status' => 'ok',
             'info' => $response,
         );
@@ -993,21 +997,26 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['id'],
         ));
         $address = $response['address'];
+        $tag = $this->safe_string($response, 'paymentId');
         return array (
             'currency' => $currency,
             'address' => $address,
+            'tag' => $tag,
             'status' => 'ok',
             'info' => $response,
         );
     }
 
-    public function withdraw ($code, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $currency = $this->currency ($code);
-        $response = $this->privatePostAccountCryptoWithdraw (array_merge (array (
+        $request = array (
             'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
-        ), $params));
+        );
+        if ($tag)
+            $request['paymentId'] = $tag;
+        $response = $this->privatePostAccountCryptoWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],

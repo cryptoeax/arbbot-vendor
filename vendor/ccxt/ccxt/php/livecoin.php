@@ -16,6 +16,7 @@ class livecoin extends Exchange {
             'hasFetchCurrencies' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
             ),
@@ -479,9 +480,16 @@ class livecoin extends Exchange {
         );
         $response = $this->privateGetPaymentGetAddress (array_merge ($request, $params));
         $address = $this->safe_string($response, 'wallet');
+        $tag = null;
+        if (mb_strpos ($address, ':') !== false) {
+            $parts = explode (':', $address);
+            $address = $parts[0];
+            $tag = $parts[2];
+        }
         return array (
             'currency' => $currency,
             'address' => $address,
+            'tag' => $tag,
             'status' => 'ok',
             'info' => $response,
         );

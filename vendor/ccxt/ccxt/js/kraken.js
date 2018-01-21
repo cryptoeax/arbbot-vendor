@@ -28,6 +28,8 @@ module.exports = class kraken extends Exchange {
             'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -742,7 +744,7 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         if ('key' in params) {
             await this.loadMarkets ();
             let response = await this.privatePostWithdraw (this.extend ({

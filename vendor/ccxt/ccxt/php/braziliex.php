@@ -16,6 +16,7 @@ class braziliex extends Exchange {
             'hasFetchMyTrades' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
@@ -137,8 +138,9 @@ class braziliex extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $markets[$id];
-            $idUpperCase = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $idUpperCase);
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -153,6 +155,8 @@ class braziliex extends Exchange {
                 'symbol' => strtoupper ($symbol),
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'lot' => $lot,
                 'precision' => $precision,
@@ -411,12 +415,14 @@ class braziliex extends Exchange {
         $response = $this->privatePostDepositAddress (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
-        $address = $this->safe_string($response['deposit_address'], 'address');
+        $address = $this->safe_string($response, 'deposit_address');
         if (!$address)
             throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
+        $tag = $this->safe_string($response, 'payment_id');
         return array (
             'currency' => $currencyCode,
             'address' => $address,
+            'tag' => $tag,
             'status' => 'ok',
             'info' => $response,
         );

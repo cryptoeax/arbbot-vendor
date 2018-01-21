@@ -8,6 +8,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
@@ -306,7 +307,8 @@ class gdax (Exchange):
         if since:
             request['start'] = self.YmdHMS(since)
             if not limit:
-                limit = 200  # max = 200
+                # https://docs.gdax.com/#get-historic-rates
+                limit = 350  # max = 350
             request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -448,7 +450,7 @@ class gdax (Exchange):
             'id': response['id'],
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         request = {
             'currency': currency,
@@ -500,16 +502,19 @@ class gdax (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
+                error = self.id + ' ' + message
                 if message.find('price too small') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
+                    raise InvalidOrder(error)
                 elif message.find('price too precise') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
+                    raise InvalidOrder(error)
+                elif message == 'Insufficient funds':
+                    raise InsufficientFunds(error)
                 elif message == 'Invalid API Key':
-                    raise AuthenticationError(self.id + ' ' + message)
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                    raise AuthenticationError(error)
+                raise ExchangeError(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

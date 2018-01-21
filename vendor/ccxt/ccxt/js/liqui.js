@@ -70,7 +70,12 @@ module.exports = class liqui extends Exchange {
                     'maker': 0.001,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': undefined,
+                    'deposit': undefined,
+                },
             },
             'exceptions': {
                 '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
@@ -571,7 +576,7 @@ module.exports = class liqui extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoin (this.extend ({
             'coinName': currency,
@@ -617,7 +622,9 @@ module.exports = class liqui extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {
-        if ((typeof body !== 'string') || (body.length < 2))
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
@@ -656,8 +663,8 @@ module.exports = class liqui extends Exchange {
                         success = false;
                 }
                 if (!success) {
-                    const code = response['code'];
-                    const message = response['error'];
+                    const code = this.safeString (response, 'code');
+                    const message = this.safeString (response, 'error');
                     const feedback = this.id + ' ' + this.json (response);
                     const exceptions = this.exceptions;
                     if (code in exceptions) {

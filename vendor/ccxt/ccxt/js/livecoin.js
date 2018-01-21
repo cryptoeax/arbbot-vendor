@@ -21,6 +21,7 @@ module.exports = class livecoin extends Exchange {
             'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
             },
@@ -484,9 +485,16 @@ module.exports = class livecoin extends Exchange {
         };
         let response = await this.privateGetPaymentGetAddress (this.extend (request, params));
         let address = this.safeString (response, 'wallet');
+        let tag = undefined;
+        if (address.indexOf (':') >= 0) {
+            let parts = address.split (':');
+            address = parts[0];
+            tag = parts[2];
+        }
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };

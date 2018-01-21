@@ -20,7 +20,7 @@ class poloniex (Exchange):
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 1000,  # up to 6 calls per second
-            'hasCORS': True,
+            'hasCORS': False,
             # obsolete metainfo interface
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
@@ -33,6 +33,8 @@ class poloniex (Exchange):
             'hasFetchOHLCV': True,
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
@@ -682,14 +684,17 @@ class poloniex (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         currencyId = self.currency_id(currency)
-        result = await self.privatePostWithdraw(self.extend({
+        request = {
             'currency': currencyId,
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        result = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': result,
             'id': result['response'],

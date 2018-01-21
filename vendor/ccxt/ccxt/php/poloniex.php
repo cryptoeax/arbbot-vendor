@@ -10,7 +10,7 @@ class poloniex extends Exchange {
             'name' => 'Poloniex',
             'countries' => 'US',
             'rateLimit' => 1000, // up to 6 calls per second
-            'hasCORS' => true,
+            'hasCORS' => false,
             // obsolete metainfo interface
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
@@ -23,6 +23,8 @@ class poloniex extends Exchange {
             'hasFetchOHLCV' => true,
             // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOrder' => 'emulated',
@@ -737,14 +739,17 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currencyId = $this->currency_id ($currency);
-        $result = $this->privatePostWithdraw (array_merge (array (
+        $request = array (
             'currency' => $currencyId,
             'amount' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        if ($tag)
+            $request['paymentId'] = $tag;
+        $result = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $result,
             'id' => $result['response'],

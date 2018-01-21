@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.757';
+$version = '1.10.793';
 
 abstract class Exchange {
 
@@ -532,6 +532,7 @@ abstract class Exchange {
         $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
+        $this->currencies_by_id = null;
         $this->userAgent   = null; // 'ccxt/' . $version . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
         $this->userAgents = array (
             'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -835,6 +836,9 @@ abstract class Exchange {
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
 
+        // Reset curl opts
+        curl_reset($this->curl);
+
         if ($result === false) {
 
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
@@ -983,6 +987,7 @@ abstract class Exchange {
             $currencies = $this->indexBy (array_merge ($base_currencies, $quote_currencies), 'code');
             $this->currencies = array_replace_recursive ($currencies, $this->currencies);
         }
+        $this->currencies_by_id = $this->indexBy (array_values ($this->currencies), 'id');
         return $this->markets;
     }
 

@@ -25,6 +25,7 @@ class bittrex extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
@@ -615,13 +616,16 @@ class bittrex extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $currencyId = $this->currency_id ($currency);
-        $response = $this->accountGetWithdraw (array_merge (array (
+        $request = array (
             'currency' => $currencyId,
             'quantity' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        if ($tag)
+            $request['paymentid'] = $tag;
+        $response = $this->accountGetWithdraw (array_merge ($request, $params));
         $id = null;
         if (is_array ($response) && array_key_exists ('result', $response)) {
             if (is_array ($response['result']) && array_key_exists ('uuid', $response['result']))

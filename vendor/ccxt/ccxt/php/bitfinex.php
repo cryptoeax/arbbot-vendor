@@ -22,6 +22,8 @@ class bitfinex extends Exchange {
             'hasFetchClosedOrders' => true,
             // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
@@ -605,7 +607,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $name = $this->get_currency_name ($currency);
         $request = array (
             'withdraw_type' => $name,
@@ -613,6 +615,8 @@ class bitfinex extends Exchange {
             'amount' => (string) $amount,
             'address' => $address,
         );
+        if ($tag)
+            $request['payment_id'] = $tag;
         $responses = $this->privatePostWithdraw (array_merge ($request, $params));
         $response = $responses[0];
         return array (

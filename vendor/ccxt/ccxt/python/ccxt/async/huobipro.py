@@ -46,6 +46,7 @@ class huobipro (Exchange):
                 'api': 'https://api.huobi.pro',
                 'www': 'https://www.huobi.pro',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+                'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
                 'market': {
@@ -82,10 +83,19 @@ class huobipro (Exchange):
                         'order/orders/{id}/submitcancel',  # 申请撤销一个订单请求
                         'order/orders/batchcancel',  # 批量撤销订单
                         'dw/balance/transfer',  # 资产划转
+                        'dw/withdraw/api/create',  # 申请提现虚拟币
                         'dw/withdraw-virtual/create',  # 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place',  # 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel',  # 申请取消提现虚拟币
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         })
@@ -419,7 +429,7 @@ class huobipro (Exchange):
                 'Timestamp': timestamp,
             }, query))
             auth = self.urlencode(request)
-            payload = "\n".join([method, self.hostname, url, auth])
+            payload = '\n'.join([method, self.hostname, url, auth])
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             url += '?' + auth

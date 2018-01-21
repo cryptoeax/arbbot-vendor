@@ -11,8 +11,14 @@ class yobit extends liqui {
             'countries' => 'RU',
             'rateLimit' => 3000, // responses are cached every 2 seconds
             'version' => '3',
+            // obsolete metainfo interface
             'hasCORS' => false,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api' => array (
@@ -162,7 +168,7 @@ class yobit extends liqui {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostWithdrawCoinsToAddress (array_merge (array (
             'coinName' => $currency,
@@ -181,9 +187,9 @@ class yobit extends liqui {
             if (!$response['success']) {
                 if (mb_strpos ($response['error'], 'Insufficient funds') !== false) { // not enougTh is a typo inside Liqui's own API...
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                } else if ($response['error'] == 'Requests too often') {
+                } else if ($response['error'] === 'Requests too often') {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                } else if (($response['error'] == 'not available') || ($response['error'] == 'external service unavailable')) {
+                } else if (($response['error'] === 'not available') || ($response['error'] === 'external service unavailable')) {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 } else {
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));

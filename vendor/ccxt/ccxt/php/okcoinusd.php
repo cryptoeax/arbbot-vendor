@@ -67,6 +67,7 @@ class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ),
                 ),
@@ -150,7 +151,9 @@ class okcoinusd extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i]['symbol'];
             $uppercase = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $uppercase);
+            list ($baseId, $quoteId) = explode ('_', $uppercase);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $markets[$i]['maxSizeDigit'],
@@ -164,6 +167,8 @@ class okcoinusd extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $markets[$i],
                 'type' => 'spot',
                 'spot' => true,
@@ -226,6 +231,13 @@ class okcoinusd extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['timestamp'];
         $symbol = null;
+        if (!$market) {
+            if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
+                $marketId = $ticker['symbol'];
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
+            }
+        }
         if ($market)
             $symbol = $market['symbol'];
         return array (
@@ -566,7 +578,7 @@ class okcoinusd extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $lowercase = strtolower ($currency) . '_usd';
         // if ($amount < 0.01)
@@ -584,10 +596,8 @@ class okcoinusd extends Exchange {
         } else {
             throw new ExchangeError ($this->id . ' withdraw() requires a `chargefee` parameter');
         }
-        $password = null;
         if ($this->password) {
             $request['trade_pwd'] = $this->password;
-            $password = $this->password;
         } else if (is_array ($query) && array_key_exists ('password', $query)) {
             $request['trade_pwd'] = $query['password'];
             $query = $this->omit ($query, 'password');
@@ -595,8 +605,9 @@ class okcoinusd extends Exchange {
             $request['trade_pwd'] = $query['trade_pwd'];
             $query = $this->omit ($query, 'trade_pwd');
         }
-        if (!$password)
-            throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a $password / trade_pwd parameter');
+        $passwordInRequest = (is_array ($request) && array_key_exists ('trade_pwd', $request));
+        if (!$passwordInRequest)
+            throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a password / trade_pwd parameter');
         $response = $this->privatePostWithdraw (array_merge ($request, $query));
         return array (
             'info' => $response,

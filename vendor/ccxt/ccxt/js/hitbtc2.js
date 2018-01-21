@@ -29,6 +29,8 @@ module.exports = class hitbtc2 extends hitbtc {
             'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
@@ -122,7 +124,7 @@ module.exports = class hitbtc2 extends hitbtc {
                     'withdraw': {
                         'BTC': 0.00085,
                         'BCC': 0.0018,
-                        'ETH': 0.00215,
+                        'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,
@@ -983,9 +985,11 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': currency['id'],
         });
         let address = response['address'];
+        let tag = this.safeString (response, 'paymentId');
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };
@@ -998,21 +1002,26 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': currency['id'],
         });
         let address = response['address'];
+        let tag = this.safeString (response, 'paymentId');
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         let currency = this.currency (code);
-        let response = await this.privatePostAccountCryptoWithdraw (this.extend ({
+        let request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        if (tag)
+            request['paymentId'] = tag;
+        let response = await this.privatePostAccountCryptoWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
