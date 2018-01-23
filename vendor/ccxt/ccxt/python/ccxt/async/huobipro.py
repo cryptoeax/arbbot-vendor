@@ -19,13 +19,8 @@ class huobipro (Exchange):
             'accounts': None,
             'accountsById': None,
             'hostname': 'api.huobi.pro',
-            'hasCORS': False,
-            # obsolete metainfo structure
-            'hasFetchOHLCV': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            # new metainfo structure
             'has': {
+                'CORS': False,
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
@@ -250,7 +245,7 @@ class huobipro (Exchange):
             ohlcv['high'],
             ohlcv['low'],
             ohlcv['close'],
-            ohlcv['vol'],
+            ohlcv['amount'],
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

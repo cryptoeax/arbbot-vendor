@@ -21,16 +21,6 @@ class gdax (Exchange):
             'countries': 'US',
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
-            # obsolete metainfo interface
-            'hasCORS': True,
-            'hasFetchOHLCV': True,
-            'hasDeposit': True,
-            'hasWithdraw': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            # new metainfo interface
             'has': {
                 'CORS': True,
                 'fetchOHLCV': True,
@@ -314,7 +304,7 @@ class gdax (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_time(self):
-        response = self.publicGetTime()
+        response = await self.publicGetTime()
         return self.parse8601(response['iso'])
 
     def parse_order_status(self, status):

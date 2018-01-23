@@ -20,13 +20,8 @@ module.exports = class huobipro extends Exchange {
             'accounts': undefined,
             'accountsById': undefined,
             'hostname': 'api.huobi.pro',
-            'hasCORS': false,
-            // obsolete metainfo structure
-            'hasFetchOHLCV': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            // new metainfo structure
             'has': {
+                'CORS': false,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -266,7 +261,7 @@ module.exports = class huobipro extends Exchange {
             ohlcv['high'],
             ohlcv['low'],
             ohlcv['close'],
-            ohlcv['vol'],
+            ohlcv['amount'],
         ];
     }
 
@@ -331,7 +326,7 @@ module.exports = class huobipro extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
-        this.load_markets ();
+        this.loadMarkets ();
         let market = this.market (symbol);
         let status = undefined;
         if ('type' in params) {
