@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -269,8 +267,11 @@ class liqui (Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             ticker = tickers[id]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -328,7 +329,7 @@ class liqui (Exchange):
         request = {
             'pair': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.publicGetTradesPair(self.extend(request, params))
         return self.parse_trades(response[market['id']], market, since, limit)
@@ -527,12 +528,12 @@ class liqui (Exchange):
             # 'end': 1234567890,  # UTC end time, default = ∞
             # 'pair': 'eth_btc',  # default = all markets
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-        if limit:
+        if limit is not None:
             request['count'] = int(limit)
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
         response = await self.privatePostTradeHistory(self.extend(request, params))
         trades = []

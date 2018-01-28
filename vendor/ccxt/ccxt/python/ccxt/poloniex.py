@@ -23,7 +23,7 @@ class poloniex (Exchange):
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
-                'CORS': True,
+                'CORS': False,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
@@ -105,7 +105,7 @@ class poloniex (Exchange):
                     'maker': 0.0015,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {},
             },
             'limits': {
                 'amount': {
@@ -177,7 +177,7 @@ class poloniex (Exchange):
             'period': self.timeframes[timeframe],
             'start': int(since / 1000),
         }
-        if limit:
+        if limit is not None:
             request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -394,7 +394,7 @@ class poloniex (Exchange):
         request = {
             'currencyPair': market['id'],
         }
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
             request['end'] = self.seconds()  # last 50000 trades by default
         trades = self.publicGetReturnTradeHistory(self.extend(request, params))
@@ -407,7 +407,7 @@ class poloniex (Exchange):
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = {'currencyPair': pair}
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
             request['end'] = self.seconds()
         # limit is disabled(does not really work as expected)

@@ -115,7 +115,8 @@ module.exports = class cryptopia extends Exchange {
             let market = markets[i];
             let id = market['Id'];
             let symbol = market['Label'];
-            let [ base, quote ] = symbol.split ('/');
+            let base = market['Symbol'];
+            let quote = market['BaseSymbol'];
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             symbol = base + '/' + quote;
@@ -270,7 +271,7 @@ module.exports = class cryptopia extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let hours = 24; // the default
-        if (since) {
+        if (typeof since !== 'undefined') {
             let elapsed = this.milliseconds () - since;
             let hour = 1000 * 60 * 60;
             hours = parseInt (elapsed / hour);

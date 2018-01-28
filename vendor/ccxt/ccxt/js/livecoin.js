@@ -20,6 +20,9 @@ module.exports = class livecoin extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -403,9 +406,9 @@ module.exports = class livecoin extends Exchange {
         let request = {};
         if (pair)
             request['currencyPair'] = pair;
-        if (since)
+        if (typeof since !== 'undefined')
             request['issuedFrom'] = parseInt (since);
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['endRow'] = limit - 1;
         let response = await this.privateGetExchangeClientOrders (this.extend (request, params));
         let result = [];

@@ -265,8 +265,12 @@ class liqui extends Exchange {
         for ($k = 0; $k < count ($keys); $k++) {
             $id = $keys[$k];
             $ticker = $tickers[$id];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = $id;
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $result;
@@ -329,7 +333,7 @@ class liqui extends Exchange {
         $request = array (
             'pair' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetTradesPair (array_merge ($request, $params));
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
@@ -552,13 +556,13 @@ class liqui extends Exchange {
             // 'end' => 1234567890, // UTC end time, default = ∞
             // 'pair' => 'eth_btc', // default = all markets
         );
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
-        if ($limit)
+        if ($limit !== null)
             $request['count'] = intval ($limit);
-        if ($since)
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
         $response = $this->privatePostTradeHistory (array_merge ($request, $params));
         $trades = array ();

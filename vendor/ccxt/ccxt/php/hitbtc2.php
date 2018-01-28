@@ -508,6 +508,7 @@ class hitbtc2 extends hitbtc {
             'DRK' => 'DASH',
             'CAT' => 'BitClave',
             'USD' => 'USDT',
+            'EMGO' => 'MGO',
         );
         if (is_array ($currencies) && array_key_exists ($currency, $currencies))
             return $currencies[$currency];
@@ -666,7 +667,7 @@ class hitbtc2 extends hitbtc {
             'symbol' => $market['id'],
             'period' => $this->timeframes[$timeframe],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetCandlesSymbol (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -918,11 +919,10 @@ class hitbtc2 extends hitbtc {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
-        if ($since) {
+        if ($since !== null)
             $request['from'] = $this->iso8601 ($since);
-        }
         $response = $this->privateGetHistoryOrder (array_merge ($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -943,9 +943,9 @@ class hitbtc2 extends hitbtc {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($since)
+        if ($since !== null)
             $request['from'] = $this->iso8601 ($since);
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetHistoryTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);

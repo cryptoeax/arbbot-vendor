@@ -110,7 +110,8 @@ class cryptopia extends Exchange {
             $market = $markets[$i];
             $id = $market['Id'];
             $symbol = $market['Label'];
-            list ($base, $quote) = explode ('/', $symbol);
+            $base = $market['Symbol'];
+            $quote = $market['BaseSymbol'];
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -265,7 +266,7 @@ class cryptopia extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $hours = 24; // the default
-        if ($since) {
+        if ($since !== null) {
             $elapsed = $this->milliseconds () - $since;
             $hour = 1000 * 60 * 60;
             $hours = intval ($elapsed / $hour);

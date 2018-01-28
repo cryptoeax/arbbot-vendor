@@ -115,7 +115,8 @@ class cryptopia (Exchange):
             market = markets[i]
             id = market['Id']
             symbol = market['Label']
-            base, quote = symbol.split('/')
+            base = market['Symbol']
+            quote = market['BaseSymbol']
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -258,7 +259,7 @@ class cryptopia (Exchange):
         self.load_markets()
         market = self.market(symbol)
         hours = 24  # the default
-        if since:
+        if since is not None:
             elapsed = self.milliseconds() - since
             hour = 1000 * 60 * 60
             hours = int(elapsed / hour)

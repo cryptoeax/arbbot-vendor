@@ -25,6 +25,9 @@ class livecoin (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -385,9 +388,9 @@ class livecoin (Exchange):
         request = {}
         if pair:
             request['currencyPair'] = pair
-        if since:
+        if since is not None:
             request['issuedFrom'] = int(since)
-        if limit:
+        if limit is not None:
             request['endRow'] = limit - 1
         response = self.privateGetExchangeClientOrders(self.extend(request, params))
         result = []

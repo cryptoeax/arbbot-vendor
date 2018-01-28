@@ -15,6 +15,9 @@ class livecoin extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -398,9 +401,9 @@ class livecoin extends Exchange {
         $request = array ();
         if ($pair)
             $request['currencyPair'] = $pair;
-        if ($since)
+        if ($since !== null)
             $request['issuedFrom'] = intval ($since);
-        if ($limit)
+        if ($limit !== null)
             $request['endRow'] = $limit - 1;
         $response = $this->privateGetExchangeClientOrders (array_merge ($request, $params));
         $result = array ();
