@@ -3,7 +3,7 @@
 The easiest way to install the ccxt library is to use builtin package managers:
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
-- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3)
+- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -11,13 +11,14 @@ This library is shipped as an all-in-one module implementation with minimalistic
 - [`./python/`](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
 - [`ccxt.php`](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
 
-You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
+You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt) and copy files
+manually into your working directory with language extension appropriate for your environment.
 
 ```shell
 git clone https://github.com/ccxt/ccxt.git
 ```
 
-An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
+An alternative way of installing this library is to build a custom bundle from source. Choose exchanges you need in `exchanges.cfg`.
 
 ### JavaScript (NPM)
 
@@ -35,12 +36,35 @@ var ccxt = require ('ccxt')
 console.log (ccxt.exchanges) // print all available exchanges
 ```
 
+#### Node.js + Windows
+
+Windows users having difficulties installing `w3`, `scrypt` or `node-gyp` dependencies for the ccxt library, try installing `scrypt` first:
+
+```
+npm install -g web3 --unsafe-perm=true --allow-root
+```
+
+or
+
+```
+sudo npm install -g web3 --unsafe-perm=true --allow-root
+```
+
+Then install ccxt as usual with `npm install ccxt`.
+
+If that does not help, please, follow here: https://github.com/nodejs/node-gyp#on-windows
+
 ### JavaScript (for use with the `<script>` tag):
 
-[All-in-one browser bundle](https://unpkg.com/ccxt) (dependencies included), served from [unpkg CDN](https://unpkg.com/), which is a fast, global content delivery network for everything on NPM.
+All-in-one browser bundle (dependencies included), served from a CDN of your choice:
+
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.38.20/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.38.20/dist/ccxt.browser.js
+
+You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.38.20/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -70,7 +94,7 @@ import ccxt.async_support as ccxt # link against the asynchronous version of ccx
 
 ### PHP
 
-The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.3+).
+The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.4+).
 
 It can also be installed from the source code: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/php)
 
@@ -80,10 +104,30 @@ It requires common PHP modules:
 - mbstring (using UTF-8 is highly recommended)
 - PCRE
 - iconv
+- gmp (this is a built-in extension as of PHP 7.2+)
 
 ```PHP
 include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
+```
+
+### Docker
+
+You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document for the details on that).
+
+You don't need the Docker image if you're not going to develop CCXT. If you just want to use CCXT – just install it as a regular package into your project.
+
+Using `docker-compose` (in the cloned CCXT repository):
+
+```shell
+docker-compose run --rm ccxt
+```
+
+Alternatively:
+
+```shell
+docker build . --tag ccxt
+docker run -it ccxt
 ```
 
 ## Proxy
@@ -125,8 +169,8 @@ You can also set them programmatically:
 import ccxt
 exchange = ccxt.poloniex({
     'proxies': {
-        'http': 'http://10.10.1.10:3128',
-        'https': 'http://10.10.1.10:1080',
+        'http': 'http://10.10.1.10:3128',  # these proxies won't work for you, they are here for example
+        'https': 'https://10.10.1.10:1080',
     },
 })
 ```
@@ -137,12 +181,12 @@ Or
 import ccxt
 exchange = ccxt.poloniex()
 exchange.proxies = {
-  'http': 'http://10.10.1.10:3128',
-  'https': 'http://10.10.1.10:1080',
+  'http': 'http://10.10.1.10:3128', # these proxies won't work for you, they are here for example
+  'https': 'https://10.10.1.10:1080',
 }
 ```
 
-#### Python 2 and 3 sync proxies
+#### Python 3 sync proxies
 
 - https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
 
@@ -170,7 +214,7 @@ exchange = ccxt.poloniex({
     # This gets passed to the `python-requests` implementation directly
     # You can also enable this with environment variables, as described here:
     # http://docs.python-requests.org/en/master/user/advanced/#proxies
-    # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
+    # This is the setting you should be using with synchronous version of ccxt in Python 3
     #
     'proxies': {
         'http': 'http://10.10.1.10:3128',
@@ -238,6 +282,35 @@ A more detailed documentation on using proxies with the sync python version of t
 
 - [Proxies](http://docs.python-requests.org/en/master/user/advanced/#proxies)
 - [SOCKS](http://docs.python-requests.org/en/master/user/advanced/#socks)
+
+#### Python aiohttp SOCKS proxy
+
+```
+pip install aiohttp_socks
+```
+
+```Python
+import ccxt.async_support as ccxt
+import aiohttp
+import aiohttp_socks
+
+async def test():
+
+    connector = aiohttp_socks.ProxyConnector.from_url('socks5://user:password@127.0.0.1:1080')
+    session = aiohttp.ClientSession(connector=connector)
+
+    exchange = ccxt.binance({
+        'session': session,
+        'enableRateLimit': True,
+        # ...
+    })
+
+    # ...
+
+    await session.close()  # don't forget to close the session
+
+    # ...
+```
 
 ## CORS (Access-Control-Allow-Origin)
 

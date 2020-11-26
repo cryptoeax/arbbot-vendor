@@ -8,6 +8,7 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
 {
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+        '5b6d49eb231faf64eed5b5de9df7aa98' => __DIR__ . '/..' . '/ccxt/ccxt/ccxt.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -68,12 +69,17 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         ),
     );
 
+    public static $classMap = array (
+        'Console_Table' => __DIR__ . '/..' . '/pear/console_table/Table.php',
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4::$prefixDirsPsr4;
             $loader->prefixesPsr0 = ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4::$classMap;
 
         }, null, ClassLoader::class);
     }
