@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,12 +7,11 @@ const liqui = require ('./liqui.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class dsx extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'dsx',
             'name': 'DSX',
-            'countries': 'UK',
+            'countries': [ 'UK' ],
             'rateLimit': 1500,
             'has': {
                 'CORS': false,
@@ -113,6 +112,11 @@ module.exports = class dsx extends liqui {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let average = this.safeFloat (ticker, 'avg');
+        if (typeof average !== 'undefined')
+            if (average > 0)
+                average = 1 / average;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -120,15 +124,17 @@ module.exports = class dsx extends liqui {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': 1 / this.safeFloat (ticker, 'avg'),
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'vol_cur'),
             'info': ticker,
@@ -146,4 +152,4 @@ module.exports = class dsx extends liqui {
     getVersionString () {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
-}
+};

@@ -1,32 +1,39 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
     "content-hash": "a3381806010adf30fefe1d77a560344f",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.10.878",
+            "version": "1.16.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "886c596ffde611b5a92cb5b6e3788ff010324c74"
+                "reference": "90ba93bd2e085d3446b7b76b2e4fffd453bc44be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/886c596ffde611b5a92cb5b6e3788ff010324c74",
-                "reference": "886c596ffde611b5a92cb5b6e3788ff010324c74",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/90ba93bd2e085d3446b7b76b2e4fffd453bc44be",
+                "reference": "90ba93bd2e085d3446b7b76b2e4fffd453bc44be",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "ext-curl": "*",
+                "ext-iconv": "*",
+                "ext-pcre": "*",
+                "php": ">=5.3.0",
+                "symfony/polyfill-mbstring": "^1.7"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~6"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "ccxt\\": "php"
+                    "ccxt\\": "php/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -254,7 +261,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2018-01-27T20:38:46+00:00"
+            "time": "2018-07-12T05:59:40+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -432,6 +439,83 @@
             "time": "2017-03-08T08:17:17+00:00"
         },
         {
+            "name": "symfony/polyfill-mbstring",
+            "version": "v1.20.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-mbstring.git",
+                "reference": "39d483bdf39be819deabf04ec872eb0b2410b531"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/39d483bdf39be819deabf04ec872eb0b2410b531",
+                "reference": "39d483bdf39be819deabf04ec872eb0b2410b531",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "suggest": {
+                "ext-mbstring": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.20-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Polyfill\\Mbstring\\": ""
+                },
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for the Mbstring extension",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "mbstring",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-10-23T14:02:19+00:00"
+        },
+        {
             "name": "textalk/websocket",
             "version": "1.0.3",
             "source": {
@@ -477,5 +561,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }

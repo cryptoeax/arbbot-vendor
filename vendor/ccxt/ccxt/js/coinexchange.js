@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinexchange extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinexchange',
@@ -18,7 +17,13 @@ module.exports = class coinexchange extends Exchange {
             // new metainfo interface
             'has': {
                 'privateAPI': false,
+                'createOrder': false,
+                'createMarketOrder': false,
+                'createLimitOrder': false,
+                'cancelOrder': false,
+                'editOrder': false,
                 'fetchTrades': false,
+                'fetchOHLCV': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
             },
@@ -248,7 +253,7 @@ module.exports = class coinexchange extends Exchange {
                         'HC': 0.01,
                         'HEALTHY': 0.01,
                         'HIGH': 0.01,
-                        'HMC': 0.01,
+                        'HarmonyCoin': 0.01,
                         'HNC': 0.01,
                         'HOC': 0.01,
                         'HODL': 0.01,
@@ -532,17 +537,34 @@ module.exports = class coinexchange extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'ANC': 'AnyChain',
+                'BON': 'BonPeKaO',
+                'BONPAY': 'BON',
+                'eNAU': 'ENAU',
+                'ETN': 'Ethernex',
+                'FRC': 'FireRoosterCoin',
+                'GET': 'GreenEnergyToken',
+                'GDC': 'GoldenCryptoCoin',
+                'GOLD': 'GoldenCoin',
+                'GTC': 'GlobalTourCoin',
+                'HMC': 'HarmonyCoin',
+                'HNC': 'Huncoin',
+                'IBC': 'RCoin',
+                'MARS': 'MarsBux',
+                'MER': 'TheMermaidCoin',
+                'OC': 'occnetwork',
+                'PUT': 'PutinCoin',
+                'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
+                'VULCANO': 'VULC',
+            },
         });
     }
 
-    commonCurrencyCode (currency) {
-        if (currency === 'HNC')
-            return 'Huncoin';
-        return currency;
-    }
-
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies (params);
+        let response = await this.publicGetGetcurrencies (params);
         let currencies = response['result'];
         let precision = this.precision['amount'];
         let result = {};
@@ -551,15 +573,11 @@ module.exports = class coinexchange extends Exchange {
             let id = currency['CurrencyID'];
             let code = this.commonCurrencyCode (currency['TickerCode']);
             let active = currency['WalletStatus'] === 'online';
-            let status = 'ok';
-            if (!active)
-                status = 'disabled';
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['Name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -586,42 +604,46 @@ module.exports = class coinexchange extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetMarkets ();
+        let response = await this.publicGetGetmarkets ();
         let markets = response['result'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['MarketID'];
-            let base = this.commonCurrencyCode (market['MarketAssetCode']);
-            let quote = this.commonCurrencyCode (market['BaseCurrencyCode']);
-            let symbol = base + '/' + quote;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': market['MarketAssetID'],
-                'quoteId': market['BaseCurrencyID'],
-                'active': market['Active'],
-                'lot': undefined,
-                'info': market,
-            });
+            let baseId = this.safeString (market, 'MarketAssetCode');
+            let quoteId = this.safeString (market, 'BaseCurrencyCode');
+            if (typeof baseId !== 'undefined' && typeof quoteId !== 'undefined') {
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                let symbol = base + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': market['Active'],
+                    'info': market,
+                });
+            }
         }
         return result;
     }
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             let marketId = ticker['MarketID'];
             if (marketId in this.markets_by_id)
-                market = this.marketsById[marketId];
+                market = this.markets_by_id[marketId];
             else
                 symbol = marketId;
         }
         if (market)
             symbol = market['symbol'];
         let timestamp = this.milliseconds ();
+        let last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -629,12 +651,14 @@ module.exports = class coinexchange extends Exchange {
             'high': this.safeFloat (ticker, 'HighPrice'),
             'low': this.safeFloat (ticker, 'LowPrice'),
             'bid': this.safeFloat (ticker, 'BidPrice'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'AskPrice'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'LastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'Change'),
             'percentage': undefined,
             'average': undefined,
@@ -647,7 +671,7 @@ module.exports = class coinexchange extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let ticker = await this.publicGetMarketsummary (this.extend ({
+        let ticker = await this.publicGetGetmarketsummary (this.extend ({
             'market_id': market['id'],
         }, params));
         return this.parseTicker (ticker['result'], market);
@@ -655,7 +679,7 @@ module.exports = class coinexchange extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketsummaries (params);
+        let response = await this.publicGetGetmarketsummaries (params);
         let tickers = response['result'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -666,9 +690,9 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderbook (this.extend ({
+        let orderbook = await this.publicGetGetorderbook (this.extend ({
             'market_id': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook['result'], undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
@@ -677,9 +701,8 @@ module.exports = class coinexchange extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
-            params = this.urlencode (params);
-            if (params.length)
-                url += '?' + params;
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

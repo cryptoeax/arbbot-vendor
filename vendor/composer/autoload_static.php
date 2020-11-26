@@ -6,6 +6,10 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
 {
+    public static $files = array (
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         'c' => 
         array (
@@ -14,6 +18,10 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         'W' => 
         array (
             'WebSocket\\' => 10,
+        ),
+        'S' => 
+        array (
+            'Symfony\\Polyfill\\Mbstring\\' => 26,
         ),
         'R' => 
         array (
@@ -31,6 +39,10 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         'WebSocket\\' => 
         array (
             0 => __DIR__ . '/..' . '/textalk/websocket/lib',
+        ),
+        'Symfony\\Polyfill\\Mbstring\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
         'React\\Stream\\' => 
         array (

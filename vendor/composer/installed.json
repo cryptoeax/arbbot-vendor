@@ -1,251 +1,35 @@
 [
     {
-        "name": "textalk/websocket",
-        "version": "1.0.3",
-        "version_normalized": "1.0.3.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/Textalk/websocket-php.git",
-            "reference": "ba2e5f9ef7cf24d536d1c864ae74b2a9599b86eb"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/Textalk/websocket-php/zipball/ba2e5f9ef7cf24d536d1c864ae74b2a9599b86eb",
-            "reference": "ba2e5f9ef7cf24d536d1c864ae74b2a9599b86eb",
-            "shasum": ""
-        },
-        "require-dev": {
-            "phpunit/phpunit": "4.1.*",
-            "phpunit/phpunit-selenium": "1.3.3",
-            "satooshi/php-coveralls": "dev-master"
-        },
-        "time": "2015-04-11T05:45:54+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "WebSocket\\": "lib"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Fredrik Liljegren",
-                "email": "fredrik.liljegren@textalk.se"
-            }
-        ],
-        "description": "WebSocket client and server"
-    },
-    {
-        "name": "react/event-loop",
-        "version": "v0.4.3",
-        "version_normalized": "0.4.3.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/event-loop.git",
-            "reference": "8bde03488ee897dc6bb3d91e4e17c353f9c5252f"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/event-loop/zipball/8bde03488ee897dc6bb3d91e4e17c353f9c5252f",
-            "reference": "8bde03488ee897dc6bb3d91e4e17c353f9c5252f",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.4.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "~4.8"
-        },
-        "suggest": {
-            "ext-event": "~1.0",
-            "ext-libev": "*",
-            "ext-libevent": ">=0.1.0"
-        },
-        "time": "2017-04-27T10:56:23+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\EventLoop\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Event loop abstraction layer that libraries can use for evented I/O.",
-        "keywords": [
-            "asynchronous",
-            "event-loop"
-        ]
-    },
-    {
-        "name": "evenement/evenement",
-        "version": "v2.1.0",
-        "version_normalized": "2.1.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/igorw/evenement.git",
-            "reference": "6ba9a777870ab49f417e703229d53931ed40fd7a"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/igorw/evenement/zipball/6ba9a777870ab49f417e703229d53931ed40fd7a",
-            "reference": "6ba9a777870ab49f417e703229d53931ed40fd7a",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.4.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "^6.0||^5.7||^4.8.35"
-        },
-        "time": "2017-07-17T17:39:19+00:00",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "2.0-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Evenement": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Igor Wiedler",
-                "email": "igor@wiedler.ch"
-            }
-        ],
-        "description": "Événement is a very simple event dispatching library for PHP",
-        "keywords": [
-            "event-dispatcher",
-            "event-emitter"
-        ]
-    },
-    {
-        "name": "react/stream",
-        "version": "v0.5.0",
-        "version_normalized": "0.5.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/stream.git",
-            "reference": "6ccc4bd601e362aebfe5f449411a08b5f38b229d"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/stream/zipball/6ccc4bd601e362aebfe5f449411a08b5f38b229d",
-            "reference": "6ccc4bd601e362aebfe5f449411a08b5f38b229d",
-            "shasum": ""
-        },
-        "require": {
-            "evenement/evenement": "^2.0|^1.0",
-            "php": ">=5.3.8"
-        },
-        "require-dev": {
-            "clue/stream-filter": "~1.2",
-            "phpunit/phpunit": "^5.0 || ^4.8.10",
-            "react/event-loop": "^0.4|^0.3",
-            "react/promise": "^2.0|^1.0"
-        },
-        "suggest": {
-            "react/event-loop": "^0.4",
-            "react/promise": "^2.0"
-        },
-        "time": "2017-03-08T08:17:17+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\Stream\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Basic readable and writable stream interfaces that support piping.",
-        "keywords": [
-            "pipe",
-            "stream"
-        ]
-    },
-    {
-        "name": "react/child-process",
-        "version": "v0.4.3",
-        "version_normalized": "0.4.3.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/child-process.git",
-            "reference": "b81d06daaafb5d7d592b6f7f8b1b7905cdef9ac6"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/child-process/zipball/b81d06daaafb5d7d592b6f7f8b1b7905cdef9ac6",
-            "reference": "b81d06daaafb5d7d592b6f7f8b1b7905cdef9ac6",
-            "shasum": ""
-        },
-        "require": {
-            "evenement/evenement": "^2.0 || ^1.0",
-            "php": ">=5.3.0",
-            "react/event-loop": "^0.4 || ^0.3",
-            "react/stream": "^0.5 || ^0.4.4"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "^5.0 || ^4.8.10",
-            "sebastian/environment": "~1.0"
-        },
-        "time": "2017-03-14T13:23:20+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\ChildProcess\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Library for executing child processes.",
-        "keywords": [
-            "process"
-        ]
-    },
-    {
         "name": "ccxt/ccxt",
-        "version": "1.10.878",
-        "version_normalized": "1.10.878.0",
+        "version": "1.16.1",
+        "version_normalized": "1.16.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/ccxt/ccxt.git",
-            "reference": "886c596ffde611b5a92cb5b6e3788ff010324c74"
+            "reference": "90ba93bd2e085d3446b7b76b2e4fffd453bc44be"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/ccxt/ccxt/zipball/886c596ffde611b5a92cb5b6e3788ff010324c74",
-            "reference": "886c596ffde611b5a92cb5b6e3788ff010324c74",
+            "url": "https://api.github.com/repos/ccxt/ccxt/zipball/90ba93bd2e085d3446b7b76b2e4fffd453bc44be",
+            "reference": "90ba93bd2e085d3446b7b76b2e4fffd453bc44be",
             "shasum": ""
         },
         "require": {
-            "php": ">=5.3.0"
+            "ext-curl": "*",
+            "ext-iconv": "*",
+            "ext-pcre": "*",
+            "php": ">=5.3.0",
+            "symfony/polyfill-mbstring": "^1.7"
         },
-        "time": "2018-01-27T20:38:46+00:00",
+        "require-dev": {
+            "phpunit/phpunit": "~6"
+        },
+        "time": "2018-07-12T05:59:40+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
-                "ccxt\\": "php"
+                "ccxt\\": "php/"
             }
         },
         "notification-url": "https://packagist.org/downloads/",
@@ -473,5 +257,307 @@
             "zec",
             "zerocoin"
         ]
+    },
+    {
+        "name": "evenement/evenement",
+        "version": "v2.1.0",
+        "version_normalized": "2.1.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/igorw/evenement.git",
+            "reference": "6ba9a777870ab49f417e703229d53931ed40fd7a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/igorw/evenement/zipball/6ba9a777870ab49f417e703229d53931ed40fd7a",
+            "reference": "6ba9a777870ab49f417e703229d53931ed40fd7a",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^6.0||^5.7||^4.8.35"
+        },
+        "time": "2017-07-17T17:39:19+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.0-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Evenement": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Igor Wiedler",
+                "email": "igor@wiedler.ch"
+            }
+        ],
+        "description": "Événement is a very simple event dispatching library for PHP",
+        "keywords": [
+            "event-dispatcher",
+            "event-emitter"
+        ]
+    },
+    {
+        "name": "react/child-process",
+        "version": "v0.4.3",
+        "version_normalized": "0.4.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/child-process.git",
+            "reference": "b81d06daaafb5d7d592b6f7f8b1b7905cdef9ac6"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/child-process/zipball/b81d06daaafb5d7d592b6f7f8b1b7905cdef9ac6",
+            "reference": "b81d06daaafb5d7d592b6f7f8b1b7905cdef9ac6",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "^2.0 || ^1.0",
+            "php": ">=5.3.0",
+            "react/event-loop": "^0.4 || ^0.3",
+            "react/stream": "^0.5 || ^0.4.4"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^5.0 || ^4.8.10",
+            "sebastian/environment": "~1.0"
+        },
+        "time": "2017-03-14T13:23:20+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\ChildProcess\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Library for executing child processes.",
+        "keywords": [
+            "process"
+        ]
+    },
+    {
+        "name": "react/event-loop",
+        "version": "v0.4.3",
+        "version_normalized": "0.4.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/event-loop.git",
+            "reference": "8bde03488ee897dc6bb3d91e4e17c353f9c5252f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/event-loop/zipball/8bde03488ee897dc6bb3d91e4e17c353f9c5252f",
+            "reference": "8bde03488ee897dc6bb3d91e4e17c353f9c5252f",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.8"
+        },
+        "suggest": {
+            "ext-event": "~1.0",
+            "ext-libev": "*",
+            "ext-libevent": ">=0.1.0"
+        },
+        "time": "2017-04-27T10:56:23+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\EventLoop\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Event loop abstraction layer that libraries can use for evented I/O.",
+        "keywords": [
+            "asynchronous",
+            "event-loop"
+        ]
+    },
+    {
+        "name": "react/stream",
+        "version": "v0.5.0",
+        "version_normalized": "0.5.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/stream.git",
+            "reference": "6ccc4bd601e362aebfe5f449411a08b5f38b229d"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/stream/zipball/6ccc4bd601e362aebfe5f449411a08b5f38b229d",
+            "reference": "6ccc4bd601e362aebfe5f449411a08b5f38b229d",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "^2.0|^1.0",
+            "php": ">=5.3.8"
+        },
+        "require-dev": {
+            "clue/stream-filter": "~1.2",
+            "phpunit/phpunit": "^5.0 || ^4.8.10",
+            "react/event-loop": "^0.4|^0.3",
+            "react/promise": "^2.0|^1.0"
+        },
+        "suggest": {
+            "react/event-loop": "^0.4",
+            "react/promise": "^2.0"
+        },
+        "time": "2017-03-08T08:17:17+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Stream\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Basic readable and writable stream interfaces that support piping.",
+        "keywords": [
+            "pipe",
+            "stream"
+        ]
+    },
+    {
+        "name": "symfony/polyfill-mbstring",
+        "version": "v1.20.0",
+        "version_normalized": "1.20.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/polyfill-mbstring.git",
+            "reference": "39d483bdf39be819deabf04ec872eb0b2410b531"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/39d483bdf39be819deabf04ec872eb0b2410b531",
+            "reference": "39d483bdf39be819deabf04ec872eb0b2410b531",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=7.1"
+        },
+        "suggest": {
+            "ext-mbstring": "For best performance"
+        },
+        "time": "2020-10-23T14:02:19+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-main": "1.20-dev"
+            },
+            "thanks": {
+                "name": "symfony/polyfill",
+                "url": "https://github.com/symfony/polyfill"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Polyfill\\Mbstring\\": ""
+            },
+            "files": [
+                "bootstrap.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony polyfill for the Mbstring extension",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "compatibility",
+            "mbstring",
+            "polyfill",
+            "portable",
+            "shim"
+        ],
+        "funding": [
+            {
+                "url": "https://symfony.com/sponsor",
+                "type": "custom"
+            },
+            {
+                "url": "https://github.com/fabpot",
+                "type": "github"
+            },
+            {
+                "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                "type": "tidelift"
+            }
+        ]
+    },
+    {
+        "name": "textalk/websocket",
+        "version": "1.0.3",
+        "version_normalized": "1.0.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/Textalk/websocket-php.git",
+            "reference": "ba2e5f9ef7cf24d536d1c864ae74b2a9599b86eb"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/Textalk/websocket-php/zipball/ba2e5f9ef7cf24d536d1c864ae74b2a9599b86eb",
+            "reference": "ba2e5f9ef7cf24d536d1c864ae74b2a9599b86eb",
+            "shasum": ""
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.1.*",
+            "phpunit/phpunit-selenium": "1.3.3",
+            "satooshi/php-coveralls": "dev-master"
+        },
+        "time": "2015-04-11T05:45:54+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "WebSocket\\": "lib"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fredrik Liljegren",
+                "email": "fredrik.liljegren@textalk.se"
+            }
+        ],
+        "description": "WebSocket client and server"
     }
 ]
