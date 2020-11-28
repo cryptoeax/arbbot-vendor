@@ -1,8 +1,8 @@
 {
     "require": {
         "textalk/websocket": "1.0.*",
-        "react/event-loop": "^0.4.3",
-        "react/child-process": "^0.4.3",
+        "react/event-loop": "^1.1.1",
+        "react/child-process": "^0.6.1",
         "ccxt/ccxt": "^1.38.20"
     }
 }

@@ -4,8 +4,10 @@ namespace React\ChildProcess;
 
 use Evenement\EventEmitter;
 use React\EventLoop\LoopInterface;
-use React\EventLoop\Timer\TimerInterface;
-use React\Stream\Stream;
+use React\Stream\ReadableResourceStream;
+use React\Stream\ReadableStreamInterface;
+use React\Stream\WritableResourceStream;
+use React\Stream\WritableStreamInterface;
 
 /**
  * Process component.
@@ -13,20 +15,81 @@ use React\Stream\Stream;
  * This class borrows logic from Symfony's Process component for ensuring
  * compatibility when PHP is compiled with the --enable-sigchild option.
  *
- * @event exit
+ * This class also implements the `EventEmitterInterface`
+ * which allows you to react to certain events:
+ *
+ * exit event:
+ *     The `exit` event will be emitted whenever the process is no longer running.
+ *     Event listeners will receive the exit code and termination signal as two
+ *     arguments:
+ *
+ *     ```php
+ *     $process = new Process('sleep 10');
+ *     $process->start($loop);
+ *
+ *     $process->on('exit', function ($code, $term) {
+ *         if ($term === null) {
+ *             echo 'exit with code ' . $code . PHP_EOL;
+ *         } else {
+ *             echo 'terminated with signal ' . $term . PHP_EOL;
+ *         }
+ *     });
+ *     ```
+ *
+ *     Note that `$code` is `null` if the process has terminated, but the exit
+ *     code could not be determined (for example
+ *     [sigchild compatibility](#sigchild-compatibility) was disabled).
+ *     Similarly, `$term` is `null` unless the process has terminated in response to
+ *     an uncaught signal sent to it.
+ *     This is not a limitation of this project, but actual how exit codes and signals
+ *     are exposed on POSIX systems, for more details see also
+ *     [here](https://unix.stackexchange.com/questions/99112/default-exit-code-when-process-is-terminated).
+ *
+ *     It's also worth noting that process termination depends on all file descriptors
+ *     being closed beforehand.
+ *     This means that all [process pipes](#stream-properties) will emit a `close`
+ *     event before the `exit` event and that no more `data` events will arrive after
+ *     the `exit` event.
+ *     Accordingly, if either of these pipes is in a paused state (`pause()` method
+ *     or internally due to a `pipe()` call), this detection may not trigger.
  */
 class Process extends EventEmitter
 {
+    /**
+     * @var WritableStreamInterface|null|ReadableStreamInterface
+     */
     public $stdin;
+
+    /**
+     * @var ReadableStreamInterface|null|WritableStreamInterface
+     */
     public $stdout;
+
+    /**
+     * @var ReadableStreamInterface|null|WritableStreamInterface
+     */
     public $stderr;
+
+    /**
+     * Array with all process pipes (once started)
+     *
+     * Unless explicitly configured otherwise during construction, the following
+     * standard I/O pipes will be assigned by default:
+     * - 0: STDIN (`WritableStreamInterface`)
+     * - 1: STDOUT (`ReadableStreamInterface`)
+     * - 2: STDERR (`ReadableStreamInterface`)
+     *
+     * @var ReadableStreamInterface|WritableStreamInterface
+     */
+    public $pipes = array();
 
     private $cmd;
     private $cwd;
     private $env;
-    private $options;
+    private $fds;
+
     private $enhanceSigchildCompatibility;
-    private $pipes;
+    private $sigchildPipe;
 
     private $process;
     private $status;
@@ -40,16 +103,16 @@ class Process extends EventEmitter
     /**
     * Constructor.
     *
-    * @param string $cmd     Command line to run
-    * @param string $cwd     Current working directory or null to inherit
-    * @param array  $env     Environment variables or null to inherit
-    * @param array  $options Options for proc_open()
-    * @throws RuntimeException When proc_open() is not installed
+    * @param string $cmd      Command line to run
+    * @param null|string $cwd Current working directory or null to inherit
+    * @param null|array  $env Environment variables or null to inherit
+    * @param null|array  $fds File descriptors to allocate for this process (or null = default STDIO streams)
+    * @throws \LogicException On windows or when proc_open() is not installed
     */
-    public function __construct($cmd, $cwd = null, array $env = null, array $options = array())
+    public function __construct($cmd, $cwd = null, array $env = null, array $fds = null)
     {
-        if (!function_exists('proc_open')) {
-            throw new \RuntimeException('The Process class relies on proc_open(), which is not available on your PHP installation.');
+        if (!\function_exists('proc_open')) {
+            throw new \LogicException('The Process class relies on proc_open(), which is not available on your PHP installation.');
         }
 
         $this->cmd = $cmd;
@@ -62,19 +125,35 @@ class Process extends EventEmitter
             }
         }
 
-        $this->options = $options;
-        $this->enhanceSigchildCompatibility = $this->isSigchildEnabled();
+        if ($fds === null) {
+            $fds = array(
+                array('pipe', 'r'), // stdin
+                array('pipe', 'w'), // stdout
+                array('pipe', 'w'), // stderr
+            );
+        }
+
+        if (\DIRECTORY_SEPARATOR === '\\') {
+            foreach ($fds as $fd) {
+                if (isset($fd[0]) && $fd[0] === 'pipe') {
+                    throw new \LogicException('Process pipes are not supported on Windows due to their blocking nature on Windows');
+                }
+            }
+        }
+
+        $this->fds = $fds;
+        $this->enhanceSigchildCompatibility = self::isSigchildEnabled();
     }
 
     /**
      * Start the process.
      *
-     * After the process is started, the standard IO streams will be constructed
-     * and available via public properties. STDIN will be paused upon creation.
+     * After the process is started, the standard I/O streams will be constructed
+     * and available via public properties.
      *
      * @param LoopInterface $loop        Loop interface for stream construction
      * @param float         $interval    Interval to periodically monitor process state (seconds)
-     * @throws RuntimeException If the process is already running or fails to start
+     * @throws \RuntimeException If the process is already running or fails to start
      */
     public function start(LoopInterface $loop, $interval = 0.1)
     {
@@ -83,55 +162,90 @@ class Process extends EventEmitter
         }
 
         $cmd = $this->cmd;
-        $fdSpec = array(
-            array('pipe', 'r'), // stdin
-            array('pipe', 'w'), // stdout
-            array('pipe', 'w'), // stderr
-        );
+        $fdSpec = $this->fds;
+        $sigchild = null;
 
         // Read exit code through fourth pipe to work around --enable-sigchild
-        if ($this->isSigchildEnabled() && $this->enhanceSigchildCompatibility) {
+        if ($this->enhanceSigchildCompatibility) {
             $fdSpec[] = array('pipe', 'w');
-            $cmd = sprintf('(%s) 3>/dev/null; code=$?; echo $code >&3; exit $code', $cmd);
+            \end($fdSpec);
+            $sigchild = \key($fdSpec);
+
+            // make sure this is fourth or higher (do not mess with STDIO)
+            if ($sigchild < 3) {
+                $fdSpec[3] = $fdSpec[$sigchild];
+                unset($fdSpec[$sigchild]);
+                $sigchild = 3;
+            }
+
+            $cmd = \sprintf('(%s) ' . $sigchild . '>/dev/null; code=$?; echo $code >&' . $sigchild . '; exit $code', $cmd);
         }
 
-        $this->process = proc_open($cmd, $fdSpec, $this->pipes, $this->cwd, $this->env, $this->options);
-
-        if (!is_resource($this->process)) {
-            throw new \RuntimeException('Unable to launch a new process.');
+        // on Windows, we do not launch the given command line in a shell (cmd.exe) by default and omit any error dialogs
+        // the cmd.exe shell can explicitly be given as part of the command as detailed in both documentation and tests
+        $options = array();
+        if (\DIRECTORY_SEPARATOR === '\\') {
+            $options['bypass_shell'] = true;
+            $options['suppress_errors'] = true;
         }
 
-        $closeCount = 0;
+        $this->process = @\proc_open($cmd, $fdSpec, $pipes, $this->cwd, $this->env, $options);
 
+        if (!\is_resource($this->process)) {
+            $error = \error_get_last();
+            throw new \RuntimeException('Unable to launch a new process: ' . $error['message']);
+        }
+
+        // count open process pipes and await close event for each to drain buffers before detecting exit
         $that = $this;
+        $closeCount = 0;
         $streamCloseHandler = function () use (&$closeCount, $loop, $interval, $that) {
-            $closeCount++;
+            $closeCount--;
 
-            if ($closeCount < 2) {
+            if ($closeCount > 0) {
                 return;
             }
 
-            $loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($that) {
+            // process already closed => report immediately
+            if (!$that->isRunning()) {
+                $that->close();
+                $that->emit('exit', array($that->getExitCode(), $that->getTermSignal()));
+                return;
+            }
+
+            // close not detected immediately => check regularly
+            $loop->addPeriodicTimer($interval, function ($timer) use ($that, $loop) {
                 if (!$that->isRunning()) {
+                    $loop->cancelTimer($timer);
                     $that->close();
-                    $timer->cancel();
                     $that->emit('exit', array($that->getExitCode(), $that->getTermSignal()));
                 }
             });
         };
 
-        $this->stdin  = new Stream($this->pipes[0], $loop);
-        $this->stdin->pause();
-        $this->stdout = new Stream($this->pipes[1], $loop);
-        $this->stdout->on('close', $streamCloseHandler);
-        $this->stderr = new Stream($this->pipes[2], $loop);
-        $this->stderr->on('close', $streamCloseHandler);
+        if ($sigchild !== null) {
+            $this->sigchildPipe = $pipes[$sigchild];
+            unset($pipes[$sigchild]);
+        }
 
-        // legacy PHP < 5.4 SEGFAULTs for unbuffered, non-blocking reads
-        // work around by enabling read buffer again
-        if (PHP_VERSION_ID < 50400) {
-            stream_set_read_buffer($this->pipes[1], 1);
-            stream_set_read_buffer($this->pipes[2], 1);
+        foreach ($pipes as $n => $fd) {
+            if (\strpos($this->fds[$n][1], 'w') === false) {
+                $stream = new WritableResourceStream($fd, $loop);
+            } else {
+                $stream = new ReadableResourceStream($fd, $loop);
+                $stream->on('close', $streamCloseHandler);
+                $closeCount++;
+            }
+            $this->pipes[$n] = $stream;
+        }
+
+        $this->stdin  = isset($this->pipes[0]) ? $this->pipes[0] : null;
+        $this->stdout = isset($this->pipes[1]) ? $this->pipes[1] : null;
+        $this->stderr = isset($this->pipes[2]) ? $this->pipes[2] : null;
+
+        // immediately start checking for process exit when started without any I/O pipes
+        if (!$closeCount) {
+            $streamCloseHandler();
         }
     }
 
@@ -147,16 +261,16 @@ class Process extends EventEmitter
             return;
         }
 
-        $this->stdin->close();
-        $this->stdout->close();
-        $this->stderr->close();
+        foreach ($this->pipes as $pipe) {
+            $pipe->close();
+        }
 
-        if ($this->isSigchildEnabled() && $this->enhanceSigchildCompatibility) {
+        if ($this->enhanceSigchildCompatibility) {
             $this->pollExitCodePipe();
             $this->closeExitCodePipe();
         }
 
-        $exitCode = proc_close($this->process);
+        $exitCode = \proc_close($this->process);
         $this->process = null;
 
         if ($this->exitCode === null && $exitCode !== -1) {
@@ -177,15 +291,19 @@ class Process extends EventEmitter
      * Terminate the process with an optional signal.
      *
      * @param int $signal Optional signal (default: SIGTERM)
-     * @return boolean Whether the signal was sent successfully
+     * @return bool Whether the signal was sent successfully
      */
     public function terminate($signal = null)
     {
-        if ($signal !== null) {
-            return proc_terminate($this->process, $signal);
+        if ($this->process === null) {
+            return false;
         }
 
-        return proc_terminate($this->process);
+        if ($signal !== null) {
+            return \proc_terminate($this->process, $signal);
+        }
+
+        return \proc_terminate($this->process);
     }
 
     /**
@@ -196,38 +314,6 @@ class Process extends EventEmitter
     public function getCommand()
     {
         return $this->cmd;
-    }
-
-    /**
-     * Return whether sigchild compatibility is enabled.
-     *
-     * @return boolean
-     */
-    public final function getEnhanceSigchildCompatibility()
-    {
-        return $this->enhanceSigchildCompatibility;
-    }
-
-    /**
-     * Enable or disable sigchild compatibility mode.
-     *
-     * Sigchild compatibility mode is required to get the exit code and
-     * determine the success of a process when PHP has been compiled with
-     * the --enable-sigchild option.
-     *
-     * @param boolean $enhance
-     * @return self
-     * @throws RuntimeException If the process is already running
-     */
-    public final function setEnhanceSigchildCompatibility($enhance)
-    {
-        if ($this->isRunning()) {
-            throw new \RuntimeException('Process is already running');
-        }
-
-        $this->enhanceSigchildCompatibility = (bool) $enhance;
-
-        return $this;
     }
 
     /**
@@ -287,7 +373,7 @@ class Process extends EventEmitter
     /**
      * Return whether the process is still running.
      *
-     * @return boolean
+     * @return bool
      */
     public function isRunning()
     {
@@ -303,7 +389,7 @@ class Process extends EventEmitter
     /**
      * Return whether the process has been stopped by a signal.
      *
-     * @return boolean
+     * @return bool
      */
     public function isStopped()
     {
@@ -315,7 +401,7 @@ class Process extends EventEmitter
     /**
      * Return whether the process has been terminated by an uncaught signal.
      *
-     * @return boolean
+     * @return bool
      */
     public function isTerminated()
     {
@@ -336,10 +422,25 @@ class Process extends EventEmitter
             return self::$sigchild;
         }
 
-        ob_start();
-        phpinfo(INFO_GENERAL);
+        \ob_start();
+        \phpinfo(INFO_GENERAL);
 
-        return self::$sigchild = false !== strpos(ob_get_clean(), '--enable-sigchild');
+        return self::$sigchild = false !== \strpos(\ob_get_clean(), '--enable-sigchild');
+    }
+
+    /**
+     * Enable or disable sigchild compatibility mode.
+     *
+     * Sigchild compatibility mode is required to get the exit code and
+     * determine the success of a process when PHP has been compiled with
+     * the --enable-sigchild option.
+     *
+     * @param bool $sigchild
+     * @return void
+     */
+    public final static function setSigchildEnabled($sigchild)
+    {
+        self::$sigchild = (bool) $sigchild;
     }
 
     /**
@@ -349,22 +450,22 @@ class Process extends EventEmitter
      */
     private function pollExitCodePipe()
     {
-        if ( ! isset($this->pipes[3])) {
+        if ($this->sigchildPipe === null) {
             return;
         }
 
-        $r = array($this->pipes[3]);
+        $r = array($this->sigchildPipe);
         $w = $e = null;
 
-        $n = @stream_select($r, $w, $e, 0);
+        $n = @\stream_select($r, $w, $e, 0);
 
         if (1 !== $n) {
             return;
         }
 
-        $data = fread($r[0], 8192);
+        $data = \fread($r[0], 8192);
 
-        if (strlen($data) > 0) {
+        if (\strlen($data) > 0) {
             $this->fallbackExitCode = (int) $data;
         }
     }
@@ -376,12 +477,12 @@ class Process extends EventEmitter
      */
     private function closeExitCodePipe()
     {
-        if ( ! isset($this->pipes[3])) {
+        if ($this->sigchildPipe === null) {
             return;
         }
 
-        fclose($this->pipes[3]);
-        unset($this->pipes[3]);
+        \fclose($this->sigchildPipe);
+        $this->sigchildPipe = null;
     }
 
     /**
@@ -423,7 +524,7 @@ class Process extends EventEmitter
             return;
         }
 
-        $this->status = proc_get_status($this->process);
+        $this->status = \proc_get_status($this->process);
 
         if ($this->status === false) {
             throw new \UnexpectedValueException('proc_get_status() failed');

@@ -2,14 +2,16 @@
 
 use React\EventLoop\Factory;
 use React\ChildProcess\Process;
-use React\Stream\Stream;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+if (DIRECTORY_SEPARATOR === '\\') {
+    exit('Process pipes not supported on Windows' . PHP_EOL);
+}
+
 $loop = Factory::create();
 
-$info = new React\Stream\Stream(STDERR, $loop);
-$info->pause();
+$info = new React\Stream\WritableResourceStream(STDERR, $loop);
 $info->write('Pipes data through process STDIN and reads STDOUT again' . PHP_EOL);
 if (extension_loaded('xdebug')) {
     $info->write('NOTICE: The "xdebug" extension is loaded, this has a major impact on performance.' . PHP_EOL);

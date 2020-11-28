@@ -9,12 +9,15 @@ use React\ChildProcess\Process;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+if (DIRECTORY_SEPARATOR === '\\') {
+    exit('Process pipes not supported on Windows' . PHP_EOL);
+}
+
 $cmd = isset($argv[1]) ? implode(' ', array_slice($argv, 1)) : 'dd if=/dev/zero bs=1M count=1000';
 
 $loop = Factory::create();
 
-$info = new React\Stream\Stream(STDERR, $loop);
-$info->pause();
+$info = new React\Stream\WritableResourceStream(STDERR, $loop);
 $info->write('Counts number of chunks/bytes received from process STDOUT' . PHP_EOL);
 $info->write('Command: ' . $cmd . PHP_EOL);
 if (extension_loaded('xdebug')) {
