@@ -7,6 +7,10 @@ namespace Composer\Autoload;
 class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
 {
     public static $files = array (
+        'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
+        '972fda704d680a3a53c68e34e193cb22' => __DIR__ . '/..' . '/react/promise-timer/src/functions_include.php',
+        'cea474b4340aa9fa53661e887a21a316' => __DIR__ . '/..' . '/react/promise-stream/src/functions_include.php',
+        'ebf8799635f67b5d7248946fe2154f4a' => __DIR__ . '/..' . '/ringcentral/psr7/src/functions_include.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '5b6d49eb231faf64eed5b5de9df7aa98' => __DIR__ . '/..' . '/ccxt/ccxt/ccxt.php',
     );
@@ -26,9 +30,21 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         ),
         'R' => 
         array (
+            'RingCentral\\Psr7\\' => 17,
             'React\\Stream\\' => 13,
+            'React\\Socket\\' => 13,
+            'React\\Promise\\Timer\\' => 20,
+            'React\\Promise\\Stream\\' => 21,
+            'React\\Promise\\' => 14,
+            'React\\Http\\' => 11,
             'React\\EventLoop\\' => 16,
+            'React\\Dns\\' => 10,
             'React\\ChildProcess\\' => 19,
+            'React\\Cache\\' => 12,
+        ),
+        'P' => 
+        array (
+            'Psr\\Http\\Message\\' => 17,
         ),
     );
 
@@ -45,17 +61,53 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
+        'RingCentral\\Psr7\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/ringcentral/psr7/src',
+        ),
         'React\\Stream\\' => 
         array (
             0 => __DIR__ . '/..' . '/react/stream/src',
+        ),
+        'React\\Socket\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/socket/src',
+        ),
+        'React\\Promise\\Timer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/promise-timer/src',
+        ),
+        'React\\Promise\\Stream\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/promise-stream/src',
+        ),
+        'React\\Promise\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/promise/src',
+        ),
+        'React\\Http\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/http/src',
         ),
         'React\\EventLoop\\' => 
         array (
             0 => __DIR__ . '/..' . '/react/event-loop/src',
         ),
+        'React\\Dns\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/dns/src',
+        ),
         'React\\ChildProcess\\' => 
         array (
             0 => __DIR__ . '/..' . '/react/child-process/src',
+        ),
+        'React\\Cache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/cache/src',
+        ),
+        'Psr\\Http\\Message\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
     );
 

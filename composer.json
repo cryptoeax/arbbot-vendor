@@ -3,6 +3,8 @@
         "textalk/websocket": "1.0.*",
         "react/event-loop": "^1.1.1",
         "react/child-process": "^0.6.1",
-        "ccxt/ccxt": "^1.38.20"
+        "ccxt/ccxt": "^1.38.20",
+        "react/stream": "^1.1.1",
+        "react/react": "^1.1.0"
     }
 }
