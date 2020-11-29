@@ -39,6 +39,7 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
             'React\\Http\\' => 11,
             'React\\EventLoop\\' => 16,
             'React\\Dns\\' => 10,
+            'React\\Datagram\\' => 15,
             'React\\ChildProcess\\' => 19,
             'React\\Cache\\' => 12,
         ),
@@ -96,6 +97,10 @@ class ComposerStaticInit6bc75d69129a5276523b740eb7a3b7a4
         'React\\Dns\\' => 
         array (
             0 => __DIR__ . '/..' . '/react/dns/src',
+        ),
+        'React\\Datagram\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/datagram/src',
         ),
         'React\\ChildProcess\\' => 
         array (

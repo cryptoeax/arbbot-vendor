@@ -18,6 +18,7 @@ return array(
     'React\\Http\\' => array($vendorDir . '/react/http/src'),
     'React\\EventLoop\\' => array($vendorDir . '/react/event-loop/src'),
     'React\\Dns\\' => array($vendorDir . '/react/dns/src'),
+    'React\\Datagram\\' => array($vendorDir . '/react/datagram/src'),
     'React\\ChildProcess\\' => array($vendorDir . '/react/child-process/src'),
     'React\\Cache\\' => array($vendorDir . '/react/cache/src'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
